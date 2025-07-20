@@ -1,18 +1,20 @@
 import { container, TOKENS } from './container';
 import { AuthController } from '../../application/controllers/auth.controller';
 import {
-  RegisterUserUseCase,
-  LoginUserUseCase,
-  InitiatePasswordResetUseCase,
+  ConfirmEmailUseCase,
   ConfirmPasswordResetUseCase,
-  RefreshTokenUseCase,
   GoogleOAuthCallbackUseCase,
+  InitiatePasswordResetUseCase,
+  LoginUserUseCase,
+  RefreshTokenUseCase,
+  RegisterUserUseCase,
+  ResendVerificationCodeUseCase,
 } from '../../domain/use-cases';
 import {
   IAuthRepository,
-  ITokenService,
   IEmailService,
   IOAuthService,
+  ITokenService,
 } from '../../domain/repositories';
 
 export function createAuthController(): AuthController {
@@ -23,7 +25,7 @@ export function createAuthController(): AuthController {
   const oauthService = container.resolve<IOAuthService>(TOKENS.OAUTH_SERVICE);
 
   // Create use cases
-  const registerUserUseCase = new RegisterUserUseCase(authRepository, emailService);
+  const registerUserUseCase = new RegisterUserUseCase(authRepository);
   const loginUserUseCase = new LoginUserUseCase(authRepository, tokenService);
   const initiatePasswordResetUseCase = new InitiatePasswordResetUseCase(authRepository);
   const confirmPasswordResetUseCase = new ConfirmPasswordResetUseCase(authRepository);
@@ -34,6 +36,8 @@ export function createAuthController(): AuthController {
     tokenService,
     emailService
   );
+  const confirmEmailUseCase = new ConfirmEmailUseCase(authRepository);
+  const resendVerificationCodeUseCase = new ResendVerificationCodeUseCase(authRepository);
 
   // Create and return controller
   return new AuthController(
@@ -43,6 +47,8 @@ export function createAuthController(): AuthController {
     confirmPasswordResetUseCase,
     refreshTokenUseCase,
     googleOAuthCallbackUseCase,
+    confirmEmailUseCase,
+    resendVerificationCodeUseCase,
     authRepository,
     oauthService
   );

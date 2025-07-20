@@ -1,4 +1,4 @@
-import { IAuthRepository, ITokenService, AuthenticateUserRequest } from '../repositories';
+import { AuthenticateUserRequest, IAuthRepository, ITokenService } from '../repositories';
 import { UserProfile } from '../../types/auth.types';
 
 export interface LoginUserRequest extends AuthenticateUserRequest {}

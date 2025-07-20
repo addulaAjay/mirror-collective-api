@@ -44,11 +44,22 @@ export function createApp(): express.Application {
 
   // Rate limiting
   const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes default
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'), // 100 requests per window default
     message: {
       error: 'Too many requests',
       message: 'Too many requests from this IP, please try again later.',
+    },
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    // Skip rate limiting in development for localhost
+    skip: (req) => {
+      if (process.env.NODE_ENV === 'development') {
+        const isLocalhost =
+          req.ip === '::1' || req.ip === '127.0.0.1' || req.ip?.includes('localhost');
+        return isLocalhost || false;
+      }
+      return false;
     },
   });
   app.use('/api/', limiter);

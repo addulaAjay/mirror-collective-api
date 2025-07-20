@@ -41,11 +41,11 @@ export class GoogleOAuthCallbackUseCase {
     } catch (error) {
       if (error instanceof UserNotFoundError) {
         // Create new user
+        const fullName = `${googleUser.given_name} ${googleUser.family_name}`.trim();
         user = await this.authRepository.createUser({
           email: googleUser.email,
           password: this.generateRandomPassword(),
-          firstName: googleUser.given_name,
-          lastName: googleUser.family_name,
+          fullName,
         });
 
         // Send welcome email (non-blocking)

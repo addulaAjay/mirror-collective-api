@@ -16,8 +16,7 @@ describe('Auth Validators', () => {
       const validData = {
         email: 'test@example.com',
         password: 'TestPassword123!',
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
       };
 
       const { error } = userRegistrationSchema.validate(validData);
@@ -28,8 +27,7 @@ describe('Auth Validators', () => {
       const invalidData = {
         email: 'invalid-email',
         password: 'TestPassword123!',
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
       };
 
       const { error } = userRegistrationSchema.validate(invalidData);
@@ -41,8 +39,7 @@ describe('Auth Validators', () => {
       const invalidData = {
         email: 'test@example.com',
         password: 'weak',
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
       };
 
       const { error } = userRegistrationSchema.validate(invalidData);
@@ -54,8 +51,7 @@ describe('Auth Validators', () => {
       const invalidData = {
         email: 'test@example.com',
         password: 'TestPassword123',
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
       };
 
       const { error } = userRegistrationSchema.validate(invalidData);
@@ -63,55 +59,74 @@ describe('Auth Validators', () => {
       expect(error?.details[0].path).toEqual(['password']);
     });
 
-    it('should reject invalid first name with numbers', () => {
+    it('should reject invalid full name with numbers', () => {
       const invalidData = {
         email: 'test@example.com',
         password: 'TestPassword123!',
-        firstName: 'John123',
-        lastName: 'Doe',
+        fullName: 'John123 Doe',
       };
 
       const { error } = userRegistrationSchema.validate(invalidData);
       expect(error).toBeDefined();
-      expect(error?.details[0].path).toEqual(['firstName']);
+      expect(error?.details[0].path).toEqual(['fullName']);
     });
 
     it('should accept names with apostrophes and hyphens', () => {
       const validData = {
         email: 'test@example.com',
         password: 'TestPassword123!',
-        firstName: "O'Connor",
-        lastName: 'Smith-Jones',
+        fullName: "O'Connor Smith-Jones",
       };
 
       const { error } = userRegistrationSchema.validate(validData);
       expect(error).toBeUndefined();
     });
 
-    it('should reject empty first name', () => {
-      const invalidData = {
+    it('should accept single name', () => {
+      const validData = {
         email: 'test@example.com',
         password: 'TestPassword123!',
-        firstName: '',
-        lastName: 'Doe',
+        fullName: 'Madonna',
       };
 
-      const { error } = userRegistrationSchema.validate(invalidData);
-      expect(error).toBeDefined();
-      expect(error?.details[0].path).toEqual(['firstName']);
+      const { error } = userRegistrationSchema.validate(validData);
+      expect(error).toBeUndefined();
     });
 
-    it('should reject too long first name', () => {
+    it('should reject full name that is too short', () => {
       const invalidData = {
         email: 'test@example.com',
         password: 'TestPassword123!',
-        firstName: 'A'.repeat(51),
-        lastName: 'Doe',
+        fullName: 'J',
       };
 
       const { error } = userRegistrationSchema.validate(invalidData);
       expect(error).toBeDefined();
-      expect(error?.details[0].path).toEqual(['firstName']);
+      expect(error?.details[0].path).toEqual(['fullName']);
+    });
+
+    it('should reject empty full name', () => {
+      const invalidData = {
+        email: 'test@example.com',
+        password: 'TestPassword123!',
+        fullName: '',
+      };
+
+      const { error } = userRegistrationSchema.validate(invalidData);
+      expect(error).toBeDefined();
+      expect(error?.details[0].path).toEqual(['fullName']);
+    });
+
+    it('should reject too long full name', () => {
+      const invalidData = {
+        email: 'test@example.com',
+        password: 'TestPassword123!',
+        fullName: 'A'.repeat(101),
+      };
+
+      const { error } = userRegistrationSchema.validate(invalidData);
+      expect(error).toBeDefined();
+      expect(error?.details[0].path).toEqual(['fullName']);
     });
 
     it('should reject missing required fields', () => {
@@ -344,8 +359,7 @@ describe('Auth Validators', () => {
       const validData = {
         email: 'test@example.com',
         password: 'TestPassword123!',
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
       };
 
       const result = validateRequest(userRegistrationSchema, validData);
@@ -373,13 +387,12 @@ describe('Auth Validators', () => {
       const invalidData = {
         email: 'invalid-email',
         password: 'weak',
-        firstName: '',
-        lastName: 'Doe123',
+        fullName: '',
       };
 
       const result = validateRequest(userRegistrationSchema, invalidData);
 
-      expect(result.validationErrors?.length).toBeGreaterThanOrEqual(3);
+      expect(result.validationErrors?.length).toBeGreaterThanOrEqual(2);
     });
 
     it('should format field paths correctly for nested objects', () => {
@@ -399,8 +412,7 @@ describe('Auth Validators', () => {
       const invalidData = {
         email: 'test@example.com',
         password: `${'A'.repeat(129)  }1!`,
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
       };
 
       const { error } = userRegistrationSchema.validate(invalidData);
@@ -412,8 +424,7 @@ describe('Auth Validators', () => {
       const validData = {
         email: 'test@example.com',
         password: 'Test123!',
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
       };
 
       const { error } = userRegistrationSchema.validate(validData);
@@ -425,8 +436,7 @@ describe('Auth Validators', () => {
       const validData = {
         email: 'test@example.com',
         password: validPassword,
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
       };
 
       const { error } = userRegistrationSchema.validate(validData);
@@ -440,8 +450,7 @@ describe('Auth Validators', () => {
       const validData = {
         email: longEmail,
         password: 'TestPassword123!',
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
       };
 
       const { error } = userRegistrationSchema.validate(validData);
@@ -453,8 +462,7 @@ describe('Auth Validators', () => {
       const invalidData = {
         email: longEmail,
         password: 'TestPassword123!',
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
       };
 
       const { error } = userRegistrationSchema.validate(invalidData);

@@ -5,8 +5,7 @@
 export interface UserRegistrationRequest {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
 }
 
 export interface UserLoginRequest {

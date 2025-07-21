@@ -8,6 +8,13 @@ export interface LoginUserResponse {
   accessToken?: string;
   refreshToken?: string;
   user?: UserProfile;
+  data?: {
+    user: UserProfile;
+    tokens: {
+      accessToken: string;
+      refreshToken: string;
+    };
+  };
 }
 
 export class LoginUserUseCase {
@@ -22,15 +29,20 @@ export class LoginUserUseCase {
 
     // Get user profile
     const user = await this.authRepository.getUserByEmail(request.email);
-
     // Generate tokens
     const { accessToken, refreshToken } = this.tokenService.generateTokenPair(user);
-
     return {
       success: true,
       accessToken,
       refreshToken,
       user,
+      data: {
+        user,
+        tokens: {
+          accessToken,
+          refreshToken,
+        },
+      },
     };
   }
 }

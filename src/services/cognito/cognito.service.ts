@@ -9,6 +9,7 @@ import {
   ConfirmForgotPasswordCommand,
   ConfirmSignUpCommand,
   ForgotPasswordCommand,
+  InitiateAuthCommand, // Add this import
   ResendConfirmationCodeCommand,
   SignUpCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
@@ -409,6 +410,53 @@ export class CognitoService {
   }
 
   /**
+   * Refresh access token using refresh token
+   */
+  async refreshAccessToken(
+    refreshToken: string
+  ): Promise<{ accessToken: string; refreshToken: string; idToken: string }> {
+    try {
+      const command = new InitiateAuthCommand({
+        ClientId: this.clientId,
+        AuthFlow: AuthFlowType.REFRESH_TOKEN_AUTH,
+        AuthParameters: {
+          REFRESH_TOKEN: refreshToken,
+          SECRET_HASH: this.calculateSecretHash(''), // Empty username for refresh
+        },
+      });
+
+      const response = await this.client.send(command);
+
+      if (!response.AuthenticationResult) {
+        throw new AuthenticationError('Token refresh failed');
+      }
+
+      const { AccessToken, RefreshToken, IdToken } = response.AuthenticationResult;
+
+      if (!AccessToken || !IdToken) {
+        throw new AuthenticationError('Token refresh returned incomplete result');
+      }
+
+      return {
+        accessToken: AccessToken,
+        refreshToken: RefreshToken || refreshToken, // Use new refresh token if provided, otherwise keep the old one
+        idToken: IdToken,
+      };
+    } catch (error: unknown) {
+      console.error('Error refreshing token:', error);
+
+      if (error instanceof Error && error.name === 'NotAuthorizedException') {
+        throw new AuthenticationError('Refresh token is invalid or expired');
+      }
+
+      throw new CognitoServiceError(
+        `Token refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.name : 'UnknownError'
+      );
+    }
+  }
+
+  /**
    * Calculate secret hash for Cognito operations
    */
   private calculateSecretHash(username: string): string {
@@ -435,6 +483,9 @@ export class CognitoService {
       emailVerified: getAttribute('email_verified') === 'true',
       createdAt: cognitoUser.UserCreateDate.toISOString(),
       updatedAt: cognitoUser.UserLastModifiedDate.toISOString(),
+      roles: [],
+      permissions: [],
+      features: [],
     };
   }
 
@@ -457,6 +508,9 @@ export class CognitoService {
       emailVerified: false, // User needs to verify email
       createdAt: now,
       updatedAt: now,
+      roles: [],
+      permissions: [],
+      features: [],
     };
   }
 }

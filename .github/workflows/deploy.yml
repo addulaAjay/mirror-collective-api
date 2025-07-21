@@ -40,7 +40,6 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: staging
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -72,6 +71,12 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
+          COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
+          COGNITO_CLIENT_SECRET: ${{ secrets.COGNITO_CLIENT_SECRET }}
+          SES_FROM_EMAIL: ${{ secrets.SES_FROM_EMAIL }}
+          ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Run integration tests
         run: npm run test:integration
@@ -83,7 +88,6 @@ jobs:
     needs: [test, deploy-staging]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/production' && github.event_name == 'push'
-    environment: production
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -115,6 +119,11 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID_PROD }}
+          COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID_PROD }}
+          COGNITO_CLIENT_SECRET: ${{ secrets.COGNITO_CLIENT_SECRET_PROD }}
+          SES_FROM_EMAIL: ${{ secrets.SES_FROM_EMAIL_PROD }}
+          ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS_PROD }}
 
       - name: Run smoke tests
         run: npm run test:smoke

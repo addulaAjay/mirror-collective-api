@@ -1,25 +1,27 @@
-import { IAuthRepository, ITokenService } from '../repositories';
-import { AuthResponse } from '../../types/auth.types';
+import jwt from 'jsonwebtoken';
+import { IAuthRepository } from '../repositories';
+import { AuthResponse, CognitoJwtPayload } from '../../types/auth.types';
 
 export interface RefreshTokenRequest {
   refreshToken: string;
 }
 
 export class RefreshTokenUseCase {
-  constructor(
-    private tokenService: ITokenService,
-    private authRepository: IAuthRepository
-  ) {}
+  constructor(private authRepository: IAuthRepository) {}
 
   async execute(request: RefreshTokenRequest): Promise<AuthResponse> {
-    // Verify refresh token
-    const decoded = this.tokenService.verifyRefreshToken(request.refreshToken);
+    // Refresh tokens with Cognito
+    const authResult = await this.authRepository.refreshToken(request.refreshToken);
 
-    // Get current user data
+    // Decode the new access token to get user information
+    const decoded = jwt.decode(authResult.accessToken) as CognitoJwtPayload;
+
+    if (!decoded || !decoded.email) {
+      throw new Error('Invalid access token received from Cognito');
+    }
+
+    // Fetch full user profile using the email from token
     const user = await this.authRepository.getUserByEmail(decoded.email);
-
-    // Generate new access token
-    const { accessToken } = this.tokenService.refreshAccessToken(request.refreshToken, user);
 
     return {
       success: true,
@@ -31,8 +33,8 @@ export class RefreshTokenUseCase {
           isVerified: user.emailVerified,
         },
         tokens: {
-          accessToken,
-          refreshToken: request.refreshToken, // Keep the same refresh token
+          accessToken: authResult.accessToken,
+          refreshToken: authResult.refreshToken,
         },
       },
       message: 'Token refreshed successfully',

@@ -1,10 +1,17 @@
 import { Request, Response, Router } from 'express';
 import { authRoutes } from '../application/routes/auth.routes';
+import { mirrorChatRoutes } from '../application/routes/mirrorChat.routes';
+import { applySecurity } from '../middleware/security-headers.middleware';
+// Rate limiting temporarily disabled - will re-enable when database is configured
+// import { apiRateLimit } from '../middleware/rate-limit.middleware';
 
 const router = Router();
 
-// API Info endpoint
-router.get('/', (req: Request, res: Response) => {
+// Apply security middleware to all API routes
+router.use(applySecurity);
+
+// API Info endpoint (rate limiting temporarily disabled)
+router.get('/', (_req: Request, res: Response) => {
   res.json({
     message: 'Mirror Collective API v1.0.0',
     description: 'RESTful API for Mirror Collective platform with comprehensive authentication',
@@ -33,27 +40,7 @@ router.get('/', (req: Request, res: Response) => {
 // Authentication routes
 router.use('/auth', authRoutes);
 
-// Users routes (placeholder)
-router.get('/users', (req: Request, res: Response) => {
-  res.json({
-    message: 'Users endpoint',
-    description: 'User management functionality will be available here',
-    note: 'Authentication is now handled at /api/auth',
-    data: [],
-    count: 0,
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// Collections routes (placeholder)
-router.get('/collections', (req: Request, res: Response) => {
-  res.json({
-    message: 'Collections endpoint',
-    description: 'Collections management functionality will be available here',
-    data: [],
-    count: 0,
-    timestamp: new Date().toISOString(),
-  });
-});
+// Chat routes
+router.use('/chat', mirrorChatRoutes);
 
 export default router;

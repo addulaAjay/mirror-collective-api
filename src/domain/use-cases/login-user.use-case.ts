@@ -1,23 +1,17 @@
-import { AuthenticateUserRequest, IAuthRepository, ITokenService } from '../repositories';
+import { AuthenticateUserRequest, IAuthRepository } from '../repositories';
 import { AuthResponse } from '../../types/auth.types';
 
 export interface LoginUserRequest extends AuthenticateUserRequest {}
 
 export class LoginUserUseCase {
-  constructor(
-    private authRepository: IAuthRepository,
-    private tokenService: ITokenService
-  ) {}
+  constructor(private authRepository: IAuthRepository) {}
 
   async execute(request: LoginUserRequest): Promise<AuthResponse> {
-    // Authenticate with repository
-    await this.authRepository.authenticateUser(request);
+    // Authenticate with Cognito and get tokens
+    const authResult = await this.authRepository.authenticateUser(request);
 
     // Get user profile
     const user = await this.authRepository.getUserByEmail(request.email);
-
-    // Generate tokens
-    const { accessToken, refreshToken } = this.tokenService.generateTokenPair(user);
 
     return {
       success: true,
@@ -29,8 +23,8 @@ export class LoginUserUseCase {
           isVerified: user.emailVerified,
         },
         tokens: {
-          accessToken,
-          refreshToken,
+          accessToken: authResult.accessToken, // Use Cognito access token
+          refreshToken: authResult.refreshToken, // Use Cognito refresh token
         },
       },
       message: 'Login successful',

@@ -1,4 +1,4 @@
-import { IAuthRepository, IEmailService, IOAuthService, ITokenService } from '../repositories';
+import { IAuthRepository, IEmailService, IOAuthService } from '../repositories';
 import { AuthResponse, UserProfile } from '../../types/auth.types';
 import { UserNotFoundError } from '../../errors/auth.errors';
 
@@ -11,7 +11,6 @@ export class GoogleOAuthCallbackUseCase {
   constructor(
     private oauthService: IOAuthService,
     private authRepository: IAuthRepository,
-    private tokenService: ITokenService,
     private emailService: IEmailService
   ) {}
 
@@ -57,9 +56,9 @@ export class GoogleOAuthCallbackUseCase {
       emailVerified: googleUser.verified_email,
     };
 
-    // Generate our own JWT tokens
-    const { accessToken, refreshToken } = this.tokenService.generateTokenPair(updatedUser);
-
+    // TODO: Replace with proper Cognito authentication flow for OAuth
+    // For now, return success without tokens since Google OAuth is disabled
+    // When re-enabling, should integrate with Cognito OAuth or create Cognito session
     return {
       success: true,
       data: {
@@ -70,8 +69,9 @@ export class GoogleOAuthCallbackUseCase {
           isVerified: updatedUser.emailVerified,
         },
         tokens: {
-          accessToken,
-          refreshToken,
+          // TODO: Implement Cognito token generation for OAuth users
+          accessToken: '', // Placeholder - would come from Cognito
+          refreshToken: '', // Placeholder - would come from Cognito
         },
       },
       message: 'Google OAuth authentication successful',

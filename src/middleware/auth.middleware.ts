@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
-import { JwtService, CognitoService } from '../services';
+import { CognitoService, JwtService } from '../services';
 import {
   AuthenticationError,
   RateLimitExceededError,

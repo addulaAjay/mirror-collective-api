@@ -1,4 +1,4 @@
-import { UserProfile, JwtPayload } from '../../types/auth.types';
+import { JwtPayload, UserProfile } from '../../types/auth.types';
 
 export interface TokenPair {
   accessToken: string;

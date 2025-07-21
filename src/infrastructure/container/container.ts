@@ -47,7 +47,6 @@ export const container = new DIContainer();
 // Service tokens
 export const TOKENS = {
   AUTH_REPOSITORY: Symbol('AuthRepository'),
-  TOKEN_SERVICE: Symbol('TokenService'),
   EMAIL_SERVICE: Symbol('EmailService'),
   OAUTH_SERVICE: Symbol('OAuthService'),
   CHAT_SERVICE: Symbol('ChatService'),

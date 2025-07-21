@@ -25,7 +25,6 @@ import { authRoutes } from './application/routes/auth.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { mirrorChatRoutes } from './application/routes/mirrorChat.routes';
 
-
 export function createApp(): express.Application {
   // Load and validate configuration
   const config = loadConfig();
@@ -93,7 +92,7 @@ export function createApp(): express.Application {
   app.use('/api/auth', authRoutes);
 
   // Mirror chat routes
-  app.use('/api', mirrorChatRoutes);
+  app.use('/api/chat', mirrorChatRoutes);
 
   // Default route
   app.get('/', (_, res) => {

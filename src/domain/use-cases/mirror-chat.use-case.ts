@@ -1,5 +1,4 @@
-import { ChatMessage, IMirrorChatRepository,  } from '../repositories/mirror-chat.repository';
-
+import { ChatMessage, IMirrorChatRepository } from '../repositories/mirror-chat.repository';
 
 export interface MirrorChatRequest {
   message: string;
@@ -17,8 +16,9 @@ export class MirrorChatUseCase {
   async execute(request: MirrorChatRequest): Promise<MirrorChatResponse> {
     // build the prompt array
     const systemPrompt: ChatMessage = {
-      role:    'system',
-      content: 'You are a deeply empathetic, spiritually-aware guide. Respond with clarity, emotional resonance, and gentle encouragement for self-reflection.',
+      role: 'system',
+      content:
+        'You are a deeply empathetic, spiritually-aware guide. Respond with clarity, emotional resonance, and gentle encouragement for self-reflection.',
     };
 
     const messages: ChatMessage[] = [

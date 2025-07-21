@@ -1,15 +1,8 @@
 import { IAuthRepository, ITokenService } from '../repositories';
-import { UserProfile } from '../../types/auth.types';
+import { AuthResponse } from '../../types/auth.types';
 
 export interface RefreshTokenRequest {
   refreshToken: string;
-}
-
-export interface RefreshTokenResponse {
-  success: boolean;
-  accessToken?: string;
-  refreshToken?: string;
-  user?: UserProfile;
 }
 
 export class RefreshTokenUseCase {
@@ -18,7 +11,7 @@ export class RefreshTokenUseCase {
     private authRepository: IAuthRepository
   ) {}
 
-  async execute(request: RefreshTokenRequest): Promise<RefreshTokenResponse> {
+  async execute(request: RefreshTokenRequest): Promise<AuthResponse> {
     // Verify refresh token
     const decoded = this.tokenService.verifyRefreshToken(request.refreshToken);
 
@@ -29,10 +22,19 @@ export class RefreshTokenUseCase {
     const { accessToken } = this.tokenService.refreshAccessToken(request.refreshToken, user);
 
     return {
-      success: true,
-      accessToken,
-      refreshToken: request.refreshToken, // Keep the same refresh token
-      user,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: `${user.firstName} ${user.lastName}`,
+          isVerified: user.emailVerified,
+        },
+        tokens: {
+          accessToken,
+          refreshToken: request.refreshToken, // Keep the same refresh token
+        },
+      },
+      message: 'Token refreshed successfully',
     };
   }
 }

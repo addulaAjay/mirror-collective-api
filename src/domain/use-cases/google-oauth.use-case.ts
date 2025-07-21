@@ -1,17 +1,10 @@
 import { IAuthRepository, IEmailService, IOAuthService, ITokenService } from '../repositories';
-import { UserProfile } from '../../types/auth.types';
+import { AuthResponse, UserProfile } from '../../types/auth.types';
 import { UserNotFoundError } from '../../errors/auth.errors';
 
 export interface GoogleOAuthCallbackRequest {
   code: string;
   state?: string;
-}
-
-export interface GoogleOAuthCallbackResponse {
-  success: boolean;
-  accessToken?: string;
-  refreshToken?: string;
-  user?: UserProfile;
 }
 
 export class GoogleOAuthCallbackUseCase {
@@ -22,7 +15,7 @@ export class GoogleOAuthCallbackUseCase {
     private emailService: IEmailService
   ) {}
 
-  async execute(request: GoogleOAuthCallbackRequest): Promise<GoogleOAuthCallbackResponse> {
+  async execute(request: GoogleOAuthCallbackRequest): Promise<AuthResponse> {
     // Validate state if provided
     if (request.state && !this.oauthService.validateState(request.state)) {
       throw new Error('Invalid OAuth state parameter');
@@ -68,10 +61,19 @@ export class GoogleOAuthCallbackUseCase {
     const { accessToken, refreshToken } = this.tokenService.generateTokenPair(updatedUser);
 
     return {
-      success: true,
-      accessToken,
-      refreshToken,
-      user: updatedUser,
+      data: {
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          fullName: `${updatedUser.firstName} ${updatedUser.lastName}`,
+          isVerified: updatedUser.emailVerified,
+        },
+        tokens: {
+          accessToken,
+          refreshToken,
+        },
+      },
+      message: 'Google OAuth authentication successful',
     };
   }
 

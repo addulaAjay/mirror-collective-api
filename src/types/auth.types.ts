@@ -46,6 +46,7 @@ export interface AuthTokens {
 }
 
 export interface AuthResponse {
+  success?: boolean;
   data?: {
     user: {
       id: string;

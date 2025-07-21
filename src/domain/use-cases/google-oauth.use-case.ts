@@ -61,6 +61,7 @@ export class GoogleOAuthCallbackUseCase {
     const { accessToken, refreshToken } = this.tokenService.generateTokenPair(updatedUser);
 
     return {
+      success: true,
       data: {
         user: {
           id: updatedUser.id,

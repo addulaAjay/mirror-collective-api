@@ -22,6 +22,7 @@ export class RefreshTokenUseCase {
     const { accessToken } = this.tokenService.refreshAccessToken(request.refreshToken, user);
 
     return {
+      success: true,
       data: {
         user: {
           id: user.id,

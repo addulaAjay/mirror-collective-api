@@ -20,6 +20,7 @@ export class LoginUserUseCase {
     const { accessToken, refreshToken } = this.tokenService.generateTokenPair(user);
 
     return {
+      success: true,
       data: {
         user: {
           id: user.id,

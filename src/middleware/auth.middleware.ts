@@ -66,7 +66,7 @@ export class AuthMiddleware {
       req.user = user;
 
       next();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Authentication error:', error);
 
       if (error instanceof AuthenticationError) {
@@ -178,7 +178,7 @@ export class AuthMiddleware {
           success: false,
           error: 'Rate Limit Exceeded',
           message: options.message || 'Too many requests from this IP, please try again later',
-          retryAfter: Math.ceil(options.windowMs! / 1000),
+          retryAfter: Math.ceil((options.windowMs || 900000) / 1000),
         });
       },
     };
@@ -220,9 +220,9 @@ export class AuthMiddleware {
 /**
  * Validation middleware for request body
  */
-export const validateRequestBody = (schema: any) => {
+export const validateRequestBody = (schema: unknown) => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    const { error, value } = schema.validate(req.body, { abortEarly: false });
+    const { error, value } = (schema as any).validate(req.body, { abortEarly: false });
 
     if (error) {
       const validationErrors = error.details.map((detail: any) => ({

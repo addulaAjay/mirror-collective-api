@@ -20,6 +20,7 @@ export interface AuthenticationResult {
 export interface IAuthRepository {
   createUser(userData: CreateUserRequest): Promise<UserProfile>;
   authenticateUser(credentials: AuthenticateUserRequest): Promise<AuthenticationResult>;
+  refreshToken(refreshToken: string): Promise<AuthenticationResult>;
   getUserByEmail(email: string): Promise<UserProfile>;
   initiatePasswordReset(email: string): Promise<void>;
   confirmPasswordReset(email: string, code: string, newPassword: string): Promise<void>;

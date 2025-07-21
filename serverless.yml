@@ -1,5 +1,5 @@
 service: mirror-collective-api
-frameworkVersion: '3'
+frameworkVersion: '^4.0.0'
 
 provider:
   name: aws
@@ -38,19 +38,19 @@ provider:
 
   # API Gateway configuration
   apiGateway:
-    restApiId: ${env:API_GATEWAY_REST_API_ID, ''}
-    restApiRootResourceId: ${env:API_GATEWAY_ROOT_RESOURCE_ID, ''}
     shouldStartNameWithService: true
     binaryMediaTypes:
       - 'multipart/form-data'
       - 'application/octet-stream'
 
 functions:
-  api:
-    handler: dist/lambda.handler
+  auth:
+    handler: dist/auth-lambda.handler
+    memorySize: 256 # Lower memory for auth operations
+    timeout: 15 # Shorter timeout for auth
     events:
       - http:
-          path: /{proxy+}
+          path: /api/auth/{proxy+}
           method: ANY
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
@@ -63,7 +63,39 @@ functions:
               - X-Amz-User-Agent
             allowCredentials: true
       - http:
-          path: /
+          path: /api/auth
+          method: ANY
+          cors:
+            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+
+  chat:
+    handler: dist/chat-lambda.handler
+    memorySize: 1024 # Higher memory for AI processing
+    timeout: 60 # Longer timeout for AI responses
+    events:
+      - http:
+          path: /api/chat/{proxy+}
+          method: ANY
+          cors:
+            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+      - http:
+          path: /api/chat
           method: ANY
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}

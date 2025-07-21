@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import Joi from 'joi';
 import { createAuthController } from '../../infrastructure/container/controller-factory';
-import { authMiddleware } from '../../middleware/auth.middleware';
+import { enhancedAuthenticateJWT } from '../../middleware/enhanced-auth.middleware';
+import { AuthController } from '../controllers/auth.controller';
 import {
   emailVerificationSchema,
   forgotPasswordSchema,
@@ -12,11 +13,28 @@ import {
   userRegistrationSchema,
   validateRequest,
 } from '../../validators/auth.validators';
+// Rate limiting temporarily disabled - will re-enable when database is configured
+// import {
+//   apiRateLimit,
+//   authRateLimit,
+//   failedLoginTracker,
+//   passwordResetRateLimit,
+// } from '../../middleware/rate-limit.middleware';
+import { applySecurity } from '../../middleware/security-headers.middleware';
 
 const router = Router();
 
-// Create controller instance
-const authController = createAuthController();
+// Apply security middleware to all routes
+router.use(applySecurity);
+
+// Lazy controller initialization for Lambda compatibility
+let authController: AuthController | null = null;
+const getAuthController = (): AuthController => {
+  if (!authController) {
+    authController = createAuthController();
+  }
+  return authController;
+};
 
 // Generic validation middleware factory
 const createValidationMiddleware =
@@ -39,26 +57,40 @@ const validateRefreshToken = createValidationMiddleware(refreshTokenSchema);
 const validateEmailVerification = createValidationMiddleware(emailVerificationSchema);
 const validateResendVerificationCode = createValidationMiddleware(resendVerificationCodeSchema);
 
-// Routes
-router.post('/register', validateRegistration, authController.register);
-router.post('/login', validateLogin, authController.login);
-router.post('/forgot-password', validateForgotPassword, authController.forgotPassword);
-router.post('/reset-password', validateResetPassword, authController.resetPassword);
-router.post('/refresh', validateRefreshToken, authController.refreshToken);
-router.post('/confirm-email', validateEmailVerification, authController.confirmEmail);
-router.post(
-  '/resend-verification-code',
-  validateResendVerificationCode,
-  authController.resendVerificationCode
+// Routes (rate limiting temporarily disabled)
+router.post('/register', validateRegistration, (req, res, next) =>
+  getAuthController().register(req, res, next)
+);
+router.post('/login', validateLogin, (req, res, next) => getAuthController().login(req, res, next));
+router.post('/forgot-password', validateForgotPassword, (req, res, next) =>
+  getAuthController().forgotPassword(req, res, next)
+);
+router.post('/reset-password', validateResetPassword, (req, res, next) =>
+  getAuthController().resetPassword(req, res, next)
+);
+router.post('/refresh', validateRefreshToken, (req, res, next) =>
+  getAuthController().refreshToken(req, res, next)
+);
+router.post('/confirm-email', validateEmailVerification, (req, res, next) =>
+  getAuthController().confirmEmail(req, res, next)
+);
+router.post('/resend-verification-code', validateResendVerificationCode, (req, res, next) =>
+  getAuthController().resendVerificationCode(req, res, next)
 );
 
 // OAuth routes
-// router.get('/google', authController.googleAuth);
-// router.get('/google/callback', authController.googleCallback);
+// router.get('/google', (req, res, next) => getAuthController().googleAuth(req, res, next));
+// router.get('/google/callback', (req, res, next) => getAuthController().googleCallback(req, res, next));
 
-// Protected routes
-router.get('/me', authMiddleware, authController.getCurrentUser);
-router.post('/logout', authMiddleware, authController.logout);
-router.delete('/account', authMiddleware, authController.deleteAccount);
+// Protected routes (rate limiting temporarily disabled)
+router.get('/me', enhancedAuthenticateJWT, (req, res, next) =>
+  getAuthController().getCurrentUser(req, res, next)
+);
+router.post('/logout', enhancedAuthenticateJWT, (req, res, next) =>
+  getAuthController().logout(req, res, next)
+);
+router.delete('/account', enhancedAuthenticateJWT, (req, res, next) =>
+  getAuthController().deleteAccount(req, res, next)
+);
 
 export { router as authRoutes };

@@ -1,7 +1,6 @@
 import { container, TOKENS } from './container';
 import { AuthController } from '../../application/controllers/auth.controller';
 import {
-
   ConfirmEmailUseCase,
   ConfirmPasswordResetUseCase,
   GoogleOAuthCallbackUseCase,
@@ -9,9 +8,7 @@ import {
   LoginUserUseCase,
   RefreshTokenUseCase,
   RegisterUserUseCase,
-
   ResendVerificationCodeUseCase,
-
 } from '../../domain/use-cases';
 import {
   IAuthRepository,
@@ -31,10 +28,10 @@ export function createAuthController(): AuthController {
 
   // Create use cases
   const registerUserUseCase = new RegisterUserUseCase(authRepository);
-  const loginUserUseCase = new LoginUserUseCase(authRepository, tokenService);
+  const loginUserUseCase = new LoginUserUseCase(authRepository); // Remove tokenService dependency
   const initiatePasswordResetUseCase = new InitiatePasswordResetUseCase(authRepository);
   const confirmPasswordResetUseCase = new ConfirmPasswordResetUseCase(authRepository);
-  const refreshTokenUseCase = new RefreshTokenUseCase(tokenService, authRepository);
+  const refreshTokenUseCase = new RefreshTokenUseCase(authRepository); // Remove tokenService dependency
   const googleOAuthCallbackUseCase = new GoogleOAuthCallbackUseCase(
     oauthService,
     authRepository,

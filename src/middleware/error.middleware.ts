@@ -17,7 +17,7 @@ export interface ErrorResponse {
   statusCode: number;
   timestamp: string;
   path: string;
-  details?: any;
+  details?: unknown;
 }
 
 export function errorHandler(

@@ -15,14 +15,18 @@ describe('JwtService', () => {
     emailVerified: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    roles: [],
+    permissions: [],
+    features: [],
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Set required environment variables
     process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-only-must-be-long';
-    process.env.JWT_REFRESH_SECRET = 'test-jwt-refresh-secret-key-for-testing-purposes-only-must-be-long';
+    process.env.JWT_REFRESH_SECRET =
+      'test-jwt-refresh-secret-key-for-testing-purposes-only-must-be-long';
     process.env.JWT_ACCESS_TOKEN_EXPIRES_IN = '15m';
     process.env.JWT_REFRESH_TOKEN_EXPIRES_IN = '7d';
 
@@ -36,7 +40,7 @@ describe('JwtService', () => {
 
     it('should throw error when JWT_SECRET is missing', () => {
       delete process.env.JWT_SECRET;
-      
+
       expect(() => new JwtService()).toThrow(
         'Missing required JWT configuration. Please check your environment variables.'
       );
@@ -44,7 +48,7 @@ describe('JwtService', () => {
 
     it('should throw error when JWT_REFRESH_SECRET is missing', () => {
       delete process.env.JWT_REFRESH_SECRET;
-      
+
       expect(() => new JwtService()).toThrow(
         'Missing required JWT configuration. Please check your environment variables.'
       );
@@ -53,7 +57,7 @@ describe('JwtService', () => {
     it('should use default expiration times when not provided', () => {
       delete process.env.JWT_ACCESS_TOKEN_EXPIRES_IN;
       delete process.env.JWT_REFRESH_TOKEN_EXPIRES_IN;
-      
+
       const service = new JwtService();
       expect(service).toBeInstanceOf(JwtService);
     });
@@ -62,10 +66,10 @@ describe('JwtService', () => {
   describe('generateAccessToken', () => {
     it('should generate a valid access token', () => {
       const token = jwtService.generateAccessToken(mockUser);
-      
+
       expect(typeof token).toBe('string');
       expect(token.split('.')).toHaveLength(3); // JWT format
-      
+
       const decoded = jwt.decode(token) as any;
       expect(decoded.userId).toBe(mockUser.id);
       expect(decoded.email).toBe(mockUser.email);
@@ -78,10 +82,10 @@ describe('JwtService', () => {
   describe('generateRefreshToken', () => {
     it('should generate a valid refresh token', () => {
       const token = jwtService.generateRefreshToken(mockUser);
-      
+
       expect(typeof token).toBe('string');
       expect(token.split('.')).toHaveLength(3); // JWT format
-      
+
       const decoded = jwt.decode(token) as any;
       expect(decoded.userId).toBe(mockUser.id);
       expect(decoded.email).toBe(mockUser.email);
@@ -94,11 +98,11 @@ describe('JwtService', () => {
   describe('generateTokenPair', () => {
     it('should generate both access and refresh tokens', () => {
       const tokens = jwtService.generateTokenPair(mockUser);
-      
+
       expect(tokens).toHaveProperty('accessToken');
       expect(tokens).toHaveProperty('refreshToken');
       expect(tokens).toHaveProperty('expiresIn');
-      
+
       expect(typeof tokens.accessToken).toBe('string');
       expect(typeof tokens.refreshToken).toBe('string');
       expect(typeof tokens.expiresIn).toBe('number');
@@ -110,7 +114,7 @@ describe('JwtService', () => {
     it('should verify a valid access token', () => {
       const token = jwtService.generateAccessToken(mockUser);
       const decoded = jwtService.verifyAccessToken(token);
-      
+
       expect(decoded.userId).toBe(mockUser.id);
       expect(decoded.email).toBe(mockUser.email);
       expect(decoded.type).toBe('access');
@@ -118,7 +122,7 @@ describe('JwtService', () => {
 
     it('should throw error for invalid token type', () => {
       const refreshToken = jwtService.generateRefreshToken(mockUser);
-      
+
       expect(() => jwtService.verifyAccessToken(refreshToken)).toThrow(InvalidTokenError);
     });
 
@@ -128,7 +132,7 @@ describe('JwtService', () => {
         process.env.JWT_SECRET!,
         { expiresIn: '-1s' }
       );
-      
+
       expect(() => jwtService.verifyAccessToken(expiredToken)).toThrow(TokenExpiredError);
     });
 
@@ -141,7 +145,7 @@ describe('JwtService', () => {
         { userId: mockUser.id, email: mockUser.email, type: 'access' },
         'wrong-secret'
       );
-      
+
       expect(() => jwtService.verifyAccessToken(wrongToken)).toThrow(InvalidTokenError);
     });
   });
@@ -150,7 +154,7 @@ describe('JwtService', () => {
     it('should verify a valid refresh token', () => {
       const token = jwtService.generateRefreshToken(mockUser);
       const decoded = jwtService.verifyRefreshToken(token);
-      
+
       expect(decoded.userId).toBe(mockUser.id);
       expect(decoded.email).toBe(mockUser.email);
       expect(decoded.type).toBe('refresh');
@@ -158,7 +162,7 @@ describe('JwtService', () => {
 
     it('should throw error for invalid token type', () => {
       const accessToken = jwtService.generateAccessToken(mockUser);
-      
+
       expect(() => jwtService.verifyRefreshToken(accessToken)).toThrow(InvalidTokenError);
     });
 
@@ -168,7 +172,7 @@ describe('JwtService', () => {
         process.env.JWT_REFRESH_SECRET!,
         { expiresIn: '-1s' }
       );
-      
+
       expect(() => jwtService.verifyRefreshToken(expiredToken)).toThrow(TokenExpiredError);
     });
 
@@ -181,7 +185,7 @@ describe('JwtService', () => {
     it('should decode a valid token without verification', () => {
       const token = jwtService.generateAccessToken(mockUser);
       const decoded = jwtService.decodeToken(token);
-      
+
       expect(decoded).toBeTruthy();
       expect(decoded?.userId).toBe(mockUser.id);
       expect(decoded?.email).toBe(mockUser.email);
@@ -197,7 +201,7 @@ describe('JwtService', () => {
     it('should get expiration date from valid token', () => {
       const token = jwtService.generateAccessToken(mockUser);
       const expiration = jwtService.getTokenExpiration(token);
-      
+
       expect(expiration).toBeInstanceOf(Date);
       expect(expiration!.getTime()).toBeGreaterThan(Date.now());
     });
@@ -207,7 +211,7 @@ describe('JwtService', () => {
         { userId: mockUser.id, email: mockUser.email, type: 'access' },
         process.env.JWT_SECRET!
       );
-      
+
       const expiration = jwtService.getTokenExpiration(tokenWithoutExp);
       expect(expiration).toBeNull();
     });
@@ -222,7 +226,7 @@ describe('JwtService', () => {
     it('should return false for valid token', () => {
       const token = jwtService.generateAccessToken(mockUser);
       const expired = jwtService.isTokenExpired(token);
-      
+
       expect(expired).toBe(false);
     });
 
@@ -232,7 +236,7 @@ describe('JwtService', () => {
         process.env.JWT_SECRET!,
         { expiresIn: '-1s' }
       );
-      
+
       const expired = jwtService.isTokenExpired(expiredToken);
       expect(expired).toBe(true);
     });
@@ -247,7 +251,7 @@ describe('JwtService', () => {
         { userId: mockUser.id, email: mockUser.email, type: 'access' },
         process.env.JWT_SECRET!
       );
-      
+
       const expired = jwtService.isTokenExpired(tokenWithoutExp);
       expect(expired).toBe(true);
     });
@@ -257,19 +261,21 @@ describe('JwtService', () => {
     it('should generate new access token from valid refresh token', () => {
       const refreshToken = jwtService.generateRefreshToken(mockUser);
       const result = jwtService.refreshAccessToken(refreshToken, mockUser);
-      
+
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('expiresIn');
       expect(typeof result.accessToken).toBe('string');
       expect(result.expiresIn).toBe(900); // 15 minutes
-      
+
       // Verify the new access token is valid
       const decoded = jwtService.verifyAccessToken(result.accessToken);
       expect(decoded.userId).toBe(mockUser.id);
     });
 
     it('should throw error for invalid refresh token', () => {
-      expect(() => jwtService.refreshAccessToken('invalid-token', mockUser)).toThrow(InvalidTokenError);
+      expect(() => jwtService.refreshAccessToken('invalid-token', mockUser)).toThrow(
+        InvalidTokenError
+      );
     });
 
     it('should throw error for expired refresh token', () => {
@@ -278,8 +284,10 @@ describe('JwtService', () => {
         process.env.JWT_REFRESH_SECRET!,
         { expiresIn: '-1s' }
       );
-      
-      expect(() => jwtService.refreshAccessToken(expiredToken, mockUser)).toThrow(TokenExpiredError);
+
+      expect(() => jwtService.refreshAccessToken(expiredToken, mockUser)).toThrow(
+        TokenExpiredError
+      );
     });
   });
 
@@ -306,7 +314,9 @@ describe('JwtService', () => {
 
     it('should throw error for invalid format', () => {
       const service = jwtService as any;
-      expect(() => service.parseExpirationToSeconds('invalid')).toThrow('Invalid expiration format');
+      expect(() => service.parseExpirationToSeconds('invalid')).toThrow(
+        'Invalid expiration format'
+      );
     });
 
     it('should throw error for invalid unit', () => {
@@ -341,10 +351,10 @@ describe('JwtService', () => {
       process.env.JWT_SECRET = 'test-short';
       const service = new JwtService();
       const validation = service.validateConfiguration();
-      
+
       expect(validation.isValid).toBe(false);
       expect(validation.errors).toContain('JWT_SECRET should be at least 32 characters long');
-      
+
       process.env.JWT_SECRET = originalSecret;
     });
 
@@ -352,7 +362,7 @@ describe('JwtService', () => {
       process.env.JWT_SECRET = 'short';
       const service = new JwtService();
       const validation = service.validateConfiguration();
-      
+
       expect(validation.isValid).toBe(false);
       expect(validation.errors).toContain('JWT_SECRET should be at least 32 characters long');
     });
@@ -362,10 +372,12 @@ describe('JwtService', () => {
       process.env.JWT_REFRESH_SECRET = 'short';
       const service = new JwtService();
       const validation = service.validateConfiguration();
-      
+
       expect(validation.isValid).toBe(false);
-      expect(validation.errors).toContain('JWT_REFRESH_SECRET should be at least 32 characters long');
-      
+      expect(validation.errors).toContain(
+        'JWT_REFRESH_SECRET should be at least 32 characters long'
+      );
+
       process.env.JWT_REFRESH_SECRET = originalRefreshSecret;
     });
 
@@ -375,7 +387,7 @@ describe('JwtService', () => {
       process.env.JWT_REFRESH_SECRET = sameSecret;
       const service = new JwtService();
       const validation = service.validateConfiguration();
-      
+
       expect(validation.isValid).toBe(false);
       expect(validation.errors).toContain('JWT_SECRET and JWT_REFRESH_SECRET should be different');
     });
@@ -384,18 +396,22 @@ describe('JwtService', () => {
       process.env.JWT_ACCESS_TOKEN_EXPIRES_IN = 'invalid';
       const service = new JwtService();
       const validation = service.validateConfiguration();
-      
+
       expect(validation.isValid).toBe(false);
-      expect(validation.errors.some(err => err.includes('Invalid JWT_ACCESS_TOKEN_EXPIRES_IN format'))).toBe(true);
+      expect(
+        validation.errors.some((err) => err.includes('Invalid JWT_ACCESS_TOKEN_EXPIRES_IN format'))
+      ).toBe(true);
     });
 
     it('should detect invalid refresh expiration format', () => {
       process.env.JWT_REFRESH_TOKEN_EXPIRES_IN = 'invalid';
       const service = new JwtService();
       const validation = service.validateConfiguration();
-      
+
       expect(validation.isValid).toBe(false);
-      expect(validation.errors.some(err => err.includes('Invalid JWT_REFRESH_TOKEN_EXPIRES_IN format'))).toBe(true);
+      expect(
+        validation.errors.some((err) => err.includes('Invalid JWT_REFRESH_TOKEN_EXPIRES_IN format'))
+      ).toBe(true);
     });
   });
 });

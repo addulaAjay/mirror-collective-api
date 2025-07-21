@@ -33,11 +33,18 @@ export class CognitoAuthRepository implements IAuthRepository {
       emailVerified: false, // User needs to verify email
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      roles: [],
+      permissions: [],
+      features: [],
     };
   }
 
   async authenticateUser(credentials: AuthenticateUserRequest): Promise<AuthenticationResult> {
     return this.cognitoService.authenticateUser(credentials.email, credentials.password);
+  }
+
+  async refreshToken(refreshToken: string): Promise<AuthenticationResult> {
+    return this.cognitoService.refreshAccessToken(refreshToken);
   }
 
   async getUserByEmail(email: string): Promise<UserProfile> {

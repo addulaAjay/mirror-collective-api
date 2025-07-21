@@ -18,7 +18,7 @@ export class MirrorChatUseCase {
     // build the prompt array
     const systemPrompt: ChatMessage = {
       role:    'system',
-      content: 'You are a sentiment analysis expert. Analyze the sentiment of the text and provide a rating from 1 to 5 stars and a confidence score between 0 and 1.',
+      content: 'You are a deeply empathetic, spiritually-aware guide. Respond with clarity, emotional resonance, and gentle encouragement for self-reflection.',
     };
 
     const messages: ChatMessage[] = [

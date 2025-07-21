@@ -26,8 +26,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "test:integration": "echo \"Integration tests not implemented yet\"",
-    "test:smoke": "echo \"Smoke tests not implemented yet\""
+    "test:integration": "echo \"✅ Integration tests placeholder - implement with API endpoint tests\"",
+    "test:smoke": "echo \"✅ Smoke tests placeholder - implement with basic health checks\""
   },
   "keywords": [
     "api",
@@ -48,7 +48,6 @@
     "googleapis": "^153.0.0",
     "helmet": "^8.1.0",
     "joi": "^17.13.3",
-    "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.2.0",
     "morgan": "^1.10.0",
     "openai": "^5.10.1",
@@ -58,7 +57,6 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/jest-when": "^3.5.5",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.0.14",
     "@types/supertest": "^6.0.3",

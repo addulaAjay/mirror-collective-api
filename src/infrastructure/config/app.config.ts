@@ -98,12 +98,6 @@ export function loadConfig(): AppConfig {
       clientId: process.env.COGNITO_CLIENT_ID!,
       clientSecret: process.env.COGNITO_CLIENT_SECRET!,
     },
-    jwt: {
-      accessTokenSecret: process.env.JWT_SECRET!,
-      refreshTokenSecret: process.env.JWT_REFRESH_SECRET!,
-      accessTokenExpiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '15m',
-      refreshTokenExpiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN || '7d',
-    },
     googleOAuth: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,

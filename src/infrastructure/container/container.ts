@@ -1,4 +1,4 @@
-import { IAuthRepository, ITokenService, IEmailService, IOAuthService } from '../../domain/repositories';
+import { IAuthRepository, IEmailService, IOAuthService, ITokenService } from '../../domain/repositories';
 
 export type ServiceToken = string | symbol;
 
@@ -52,6 +52,8 @@ export const TOKENS = {
   TOKEN_SERVICE: Symbol('TokenService'),
   EMAIL_SERVICE: Symbol('EmailService'),
   OAUTH_SERVICE: Symbol('OAuthService'),
+  CHAT_SERVICE: Symbol('ChatService'),
+  MIRROR_CHAT_USE_CASE: Symbol('MirrorChatUseCase'),
 } as const;
 
 export type ServiceTokens = typeof TOKENS;

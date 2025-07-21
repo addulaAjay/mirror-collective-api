@@ -17,6 +17,7 @@ process.env.GOOGLE_CLIENT_SECRET = 'test-google-client-secret';
 process.env.GOOGLE_REDIRECT_URI = 'http://localhost:3000/api/auth/google/callback';
 process.env.SES_FROM_EMAIL = 'test@example.com';
 process.env.API_BASE_URL = 'http://localhost:3000';
+process.env.OPENAI_API_KEY = 'test-openai-key-that-is-long-enough-123456';
 
 // Global test mocks
 vi.mock('aws-sdk', () => ({
@@ -65,6 +66,15 @@ vi.mock('googleapis', () => ({
   },
 }));
 
+vi.mock('openai', () => {
+  return {
+    OpenAI: class {
+      createChatCompletion = vi.fn();
+      createImage = vi.fn();
+    },
+  };
+});
+
 // Console mocks to reduce noise in tests
 global.console = {
   ...console,
@@ -73,3 +83,6 @@ global.console = {
   warn: vi.fn(),
   info: vi.fn(),
 };
+
+import { registerServices } from './infrastructure/container/service-registry';
+registerServices();

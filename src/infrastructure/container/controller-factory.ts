@@ -1,19 +1,21 @@
 import { container, TOKENS } from './container';
 import { AuthController } from '../../application/controllers/auth.controller';
 import {
-  RegisterUserUseCase,
-  LoginUserUseCase,
-  InitiatePasswordResetUseCase,
   ConfirmPasswordResetUseCase,
-  RefreshTokenUseCase,
   GoogleOAuthCallbackUseCase,
+  InitiatePasswordResetUseCase,
+  LoginUserUseCase,
+  RefreshTokenUseCase,
+  RegisterUserUseCase,
 } from '../../domain/use-cases';
 import {
   IAuthRepository,
-  ITokenService,
   IEmailService,
   IOAuthService,
+  ITokenService,
 } from '../../domain/repositories';
+import { MirrorChatController } from '../../application/controllers/mirrorChat.controller';
+import { MirrorChatUseCase } from '../../domain/use-cases/mirror-chat.use-case';
 
 export function createAuthController(): AuthController {
   // Resolve dependencies from container
@@ -46,4 +48,9 @@ export function createAuthController(): AuthController {
     authRepository,
     oauthService
   );
+}
+
+export function createMirrorChatController(): MirrorChatController {
+  const mirrorChatUseCase = container.resolve<MirrorChatUseCase>(TOKENS.MIRROR_CHAT_USE_CASE);
+  return new MirrorChatController(mirrorChatUseCase);
 }

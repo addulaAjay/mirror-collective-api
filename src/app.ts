@@ -14,20 +14,24 @@ import { loadConfig, validateConfiguration } from './infrastructure/config';
 // Dependency injection setup
 import { registerServices } from './infrastructure/container/service-registry';
 
+// Register services immediately
+registerServices();
+console.log('✅ Services registered in DI container');
+
 // Routes
 import { authRoutes } from './application/routes/auth.routes';
 
 // Error handling
 import { errorHandler } from './middleware/error.middleware';
+import { mirrorChatRoutes } from './application/routes/mirrorChat.routes';
+
 
 export function createApp(): express.Application {
   // Load and validate configuration
   const config = loadConfig();
   console.log('✅ Configuration loaded successfully');
 
-  // Register services in DI container
-  registerServices();
-  console.log('✅ Services registered in DI container');
+  // Services already registered at module level
 
   const app = express();
 
@@ -77,6 +81,9 @@ export function createApp(): express.Application {
   // API routes
   app.use('/api/auth', authRoutes);
 
+  // Mirror chat routes
+  app.use('/api', mirrorChatRoutes);
+
   // Default route
   app.get('/', (_, res) => {
     res.json({
@@ -88,7 +95,7 @@ export function createApp(): express.Application {
   });
 
   // 404 handler
-  app.use('*', (req, res) => {
+  app.use((req, res) => {
     res.status(404).json({
       error: 'Route not found',
       message: `The requested route ${req.originalUrl} was not found on this server.`,

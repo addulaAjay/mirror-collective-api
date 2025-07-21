@@ -7,7 +7,10 @@ import {
   AuthFlowType,
   CognitoIdentityProviderClient,
   ConfirmForgotPasswordCommand,
+  ConfirmSignUpCommand,
   ForgotPasswordCommand,
+  ResendConfirmationCodeCommand,
+  SignUpCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import {
@@ -56,8 +59,9 @@ export class CognitoService {
     firstName: string,
     lastName: string
   ): Promise<UserProfile> {
+    // firstName and lastName are provided as separate parameters
     try {
-      // Check if user already exists
+      // Check if user already exists - skip this check for now as it might cause issues with email aliases
       await this.getUserByEmail(email);
       throw new UserAlreadyExistsError('A user with this email already exists');
     } catch (error) {
@@ -69,9 +73,12 @@ export class CognitoService {
     }
 
     try {
+      const crypto = require('crypto');
+      const username = crypto.randomUUID();
+
       const command = new AdminCreateUserCommand({
         UserPoolId: this.userPoolId,
-        Username: email,
+        Username: username,
         UserAttributes: [
           {
             Name: 'email',
@@ -91,20 +98,23 @@ export class CognitoService {
           },
         ],
         TemporaryPassword: password,
-        MessageAction: 'SUPPRESS', // Don't send welcome email
+        MessageAction: 'SUPPRESS', // Don't send admin welcome email
       });
 
       const response = await this.client.send(command);
 
-      // Set permanent password
+      // Set permanent password but keep user unconfirmed for email verification
       const setPasswordCommand = new AdminSetUserPasswordCommand({
         UserPoolId: this.userPoolId,
-        Username: email,
+        Username: username,
         Password: password,
         Permanent: true,
       });
 
       await this.client.send(setPasswordCommand);
+
+      // Send email verification code using the email as identifier
+      await this.resendConfirmationCode(email);
 
       if (!response.User) {
         throw new CognitoServiceError('Failed to create user - no user data returned');
@@ -289,6 +299,116 @@ export class CognitoService {
   }
 
   /**
+   * Confirm user email with verification code
+   */
+  async confirmSignUp(email: string, confirmationCode: string): Promise<void> {
+    try {
+      const command = new ConfirmSignUpCommand({
+        ClientId: this.clientId,
+        Username: email,
+        ConfirmationCode: confirmationCode,
+        SecretHash: this.calculateSecretHash(email),
+      });
+
+      await this.client.send(command);
+    } catch (error: unknown) {
+      console.error('Error confirming sign up:', error);
+      if (error && typeof error === 'object' && 'name' in error) {
+        if (error.name === 'CodeMismatchException') {
+          throw new AuthenticationError('Invalid verification code');
+        }
+        if (error.name === 'ExpiredCodeException') {
+          throw new AuthenticationError('Verification code has expired');
+        }
+        if (error.name === 'UserNotFoundException') {
+          throw new UserNotFoundError('User not found');
+        }
+      }
+      throw new CognitoServiceError(`Failed to confirm sign up: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * Resend email verification code
+   */
+  async resendConfirmationCode(email: string): Promise<void> {
+    try {
+      const command = new ResendConfirmationCodeCommand({
+        ClientId: this.clientId,
+        Username: email,
+        SecretHash: this.calculateSecretHash(email),
+      });
+
+      await this.client.send(command);
+    } catch (error: unknown) {
+      console.error('Error resending confirmation code:', error);
+      if (error && typeof error === 'object' && 'name' in error) {
+        if (error.name === 'UserNotFoundException') {
+          throw new UserNotFoundError('User not found');
+        }
+        if (error.name === 'InvalidParameterException') {
+          throw new CognitoServiceError('User is already confirmed');
+        }
+      }
+      throw new CognitoServiceError(
+        `Failed to resend confirmation code: ${(error as Error).message}`
+      );
+    }
+  }
+
+  /**
+   * Self-register a new user (for email verification flow)
+   * This method uses SignUpCommand which automatically sends verification email
+   */
+  async signUpUser(
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string
+  ): Promise<{ userSub: string; codeDeliveryDetails: any }> {
+    try {
+      const command = new SignUpCommand({
+        ClientId: this.clientId,
+        Username: email, // Use email as username for self-registration
+        Password: password,
+        SecretHash: this.calculateSecretHash(email),
+        UserAttributes: [
+          {
+            Name: 'email',
+            Value: email,
+          },
+          {
+            Name: 'given_name',
+            Value: firstName,
+          },
+          {
+            Name: 'family_name',
+            Value: lastName,
+          },
+        ],
+      });
+
+      const response = await this.client.send(command);
+
+      if (!response.UserSub) {
+        throw new CognitoServiceError('Failed to create user - no user ID returned');
+      }
+
+      return {
+        userSub: response.UserSub,
+        codeDeliveryDetails: response.CodeDeliveryDetails,
+      };
+    } catch (error: any) {
+      if (error.name === 'UsernameExistsException') {
+        throw new UserAlreadyExistsError('A user with this email already exists');
+      }
+
+      console.error('Error signing up user in Cognito:', error);
+      throw new CognitoServiceError(`Failed to sign up user: ${error.message}`, error.name);
+    }
+  }
+
+  /**
    * Calculate secret hash for Cognito operations
    */
   private calculateSecretHash(username: string): string {
@@ -315,6 +435,28 @@ export class CognitoService {
       emailVerified: getAttribute('email_verified') === 'true',
       createdAt: cognitoUser.UserCreateDate.toISOString(),
       updatedAt: cognitoUser.UserLastModifiedDate.toISOString(),
+    };
+  }
+
+  /**
+   * Create user profile from sign-up response
+   */
+  private createUserProfileFromSignUp(
+    userSub: string,
+    email: string,
+    firstName: string,
+    lastName: string
+  ): UserProfile {
+    const now = new Date().toISOString();
+    return {
+      id: userSub,
+      email,
+      firstName,
+      lastName,
+      provider: 'cognito',
+      emailVerified: false, // User needs to verify email
+      createdAt: now,
+      updatedAt: now,
     };
   }
 }

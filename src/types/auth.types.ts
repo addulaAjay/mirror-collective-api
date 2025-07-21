@@ -5,8 +5,7 @@
 export interface UserRegistrationRequest {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
 }
 
 export interface UserLoginRequest {
@@ -47,18 +46,33 @@ export interface AuthTokens {
 }
 
 export interface AuthResponse {
+  success?: boolean;
+  data?: {
+    user: {
+      id: string;
+      email: string;
+      fullName: string;
+      isVerified: boolean;
+    };
+    tokens: {
+      accessToken: string;
+      refreshToken: string;
+    };
+  };
+  message?: string;
+  error?: string;
+}
+
+export interface GeneralApiResponse {
   success: boolean;
   message?: string;
-  accessToken?: string;
-  refreshToken?: string;
-  user?: UserProfile;
 }
 
 export interface ApiErrorResponse {
   success: false;
   error: string;
   message?: string;
-  details?: any;
+  details?: unknown;
 }
 
 export interface CognitoUser {

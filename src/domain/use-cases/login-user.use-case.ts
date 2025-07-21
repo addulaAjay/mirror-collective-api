@@ -1,14 +1,7 @@
-import { IAuthRepository, ITokenService, AuthenticateUserRequest } from '../repositories';
-import { UserProfile } from '../../types/auth.types';
+import { AuthenticateUserRequest, IAuthRepository, ITokenService } from '../repositories';
+import { AuthResponse } from '../../types/auth.types';
 
 export interface LoginUserRequest extends AuthenticateUserRequest {}
-
-export interface LoginUserResponse {
-  success: boolean;
-  accessToken?: string;
-  refreshToken?: string;
-  user?: UserProfile;
-}
 
 export class LoginUserUseCase {
   constructor(
@@ -16,7 +9,7 @@ export class LoginUserUseCase {
     private tokenService: ITokenService
   ) {}
 
-  async execute(request: LoginUserRequest): Promise<LoginUserResponse> {
+  async execute(request: LoginUserRequest): Promise<AuthResponse> {
     // Authenticate with repository
     await this.authRepository.authenticateUser(request);
 
@@ -28,9 +21,19 @@ export class LoginUserUseCase {
 
     return {
       success: true,
-      accessToken,
-      refreshToken,
-      user,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: `${user.firstName} ${user.lastName}`,
+          isVerified: user.emailVerified,
+        },
+        tokens: {
+          accessToken,
+          refreshToken,
+        },
+      },
+      message: 'Login successful',
     };
   }
 }

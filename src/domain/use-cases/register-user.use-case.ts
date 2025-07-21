@@ -1,6 +1,5 @@
-import { IAuthRepository, IEmailService, CreateUserRequest } from '../repositories';
+import { CreateUserRequest, IAuthRepository } from '../repositories';
 import { UserProfile } from '../../types/auth.types';
-import { AuthResponse } from '../../types/auth.types';
 
 export interface RegisterUserRequest extends CreateUserRequest {}
 
@@ -11,19 +10,11 @@ export interface RegisterUserResponse {
 }
 
 export class RegisterUserUseCase {
-  constructor(
-    private authRepository: IAuthRepository,
-    private emailService: IEmailService
-  ) {}
+  constructor(private authRepository: IAuthRepository) {}
 
   async execute(request: RegisterUserRequest): Promise<RegisterUserResponse> {
     // Pure business logic without infrastructure concerns
     const user = await this.authRepository.createUser(request);
-
-    // Send welcome email (non-blocking)
-    this.emailService.sendWelcomeEmail(user.email, user.firstName).catch((error) => {
-      console.error('Failed to send welcome email:', error);
-    });
 
     return {
       success: true,

@@ -20,20 +20,19 @@ const emailSchema = Joi.string()
   .max(254)
   .required();
 
-// Name validation
-const nameSchema = Joi.string()
-  .min(1)
-  .max(50)
+// Full name validation
+const fullNameSchema = Joi.string()
+  .min(2)
+  .max(100)
   .pattern(/^[a-zA-Z\s'-]+$/)
-  .message('Name must contain only letters, spaces, hyphens, and apostrophes')
+  .message('Full name must contain only letters, spaces, hyphens, and apostrophes')
   .required();
 
 // User registration validation schema
 export const userRegistrationSchema = Joi.object({
   email: emailSchema,
   password: passwordSchema,
-  firstName: nameSchema,
-  lastName: nameSchema,
+  fullName: fullNameSchema,
 });
 
 // User login validation schema
@@ -69,6 +68,21 @@ export const refreshTokenSchema = Joi.object({
   refreshToken: Joi.string().required(),
 });
 
+// Email verification validation schema
+export const emailVerificationSchema = Joi.object({
+  email: emailSchema,
+  code: Joi.string()
+    .length(6)
+    .pattern(/^\d{6}$/)
+    .message('Verification code must be a 6-digit number')
+    .required(),
+});
+
+// Resend verification code validation schema
+export const resendVerificationCodeSchema = Joi.object({
+  email: emailSchema,
+});
+
 // Change password validation schema
 export const changePasswordSchema = Joi.object({
   currentPassword: Joi.string().required(),
@@ -78,7 +92,7 @@ export const changePasswordSchema = Joi.object({
 // Validation function helper
 export const validateRequest = (
   schema: Joi.ObjectSchema,
-  data: any
+  data: unknown
 ): { error?: string; validationErrors?: Array<{ field: string; message: string }> } => {
   const { error } = schema.validate(data, { abortEarly: false });
 

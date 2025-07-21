@@ -64,10 +64,13 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install Serverless Framework
-        run: npm install -g serverless
+        run: npm install -g serverless@3
 
       - name: Deploy to staging
-        run: serverless deploy --stage staging
+        id: deploy
+        run: |
+          serverless deploy --stage staging
+          echo "deployment_url=https://$(serverless info --stage staging | grep ServiceEndpoint | cut -d' ' -f2)" >> $GITHUB_OUTPUT
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -82,7 +85,7 @@ jobs:
         run: npm run test:integration
         continue-on-error: true
         env:
-          API_BASE_URL: ${{ steps.deploy.outputs.api-url }}
+          API_BASE_URL: ${{ steps.deploy.outputs.deployment_url }}
 
   deploy-production:
     needs: [test, deploy-staging]
@@ -112,10 +115,13 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install Serverless Framework
-        run: npm install -g serverless
+        run: npm install -g serverless@3
 
       - name: Deploy to production
-        run: serverless deploy --stage production
+        id: deploy-prod
+        run: |
+          serverless deploy --stage production
+          echo "deployment_url=https://$(serverless info --stage production | grep ServiceEndpoint | cut -d' ' -f2)" >> $GITHUB_OUTPUT
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
@@ -128,10 +134,10 @@ jobs:
       - name: Run smoke tests
         run: npm run test:smoke
         env:
-          API_BASE_URL: ${{ steps.deploy.outputs.api-url }}
+          API_BASE_URL: ${{ steps.deploy-prod.outputs.deployment_url }}
 
       - name: Notify deployment success
         if: success()
         run: |
           echo "🚀 Production deployment successful!"
-          echo "API URL: ${{ steps.deploy.outputs.api-url }}"
+          echo "API URL: ${{ steps.deploy-prod.outputs.deployment_url }}"

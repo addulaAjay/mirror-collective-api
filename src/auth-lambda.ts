@@ -79,13 +79,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (error instanceof SyntaxError && 'body' in error) {
     console.error('JSON parsing error:', error.message);
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       error: 'Invalid JSON format',
       message: 'The request body contains invalid JSON',
     });
+    return;
   }
-  next(error);
+  return next(error);
 });
 
 // Health check for auth lambda

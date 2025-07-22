@@ -57,11 +57,6 @@ export const resetPasswordSchema = Joi.object({
   newPassword: passwordSchema,
 });
 
-// Google OAuth callback validation schema
-export const googleAuthCallbackSchema = Joi.object({
-  code: Joi.string().required(),
-  state: Joi.string().optional(),
-});
 
 // Refresh token validation schema
 export const refreshTokenSchema = Joi.object({

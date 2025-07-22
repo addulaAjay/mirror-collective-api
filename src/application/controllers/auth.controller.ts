@@ -9,14 +9,13 @@ interface AuthenticatedRequest extends Request {
 import {
   ConfirmEmailUseCase,
   ConfirmPasswordResetUseCase,
-  GoogleOAuthCallbackUseCase,
   InitiatePasswordResetUseCase,
   LoginUserUseCase,
   RefreshTokenUseCase,
   RegisterUserUseCase,
   ResendVerificationCodeUseCase,
 } from '../../domain/use-cases';
-import { IAuthRepository, IOAuthService } from '../../domain/repositories';
+import { IAuthRepository } from '../../domain/repositories';
 
 export class AuthController {
   constructor(
@@ -25,11 +24,9 @@ export class AuthController {
     private initiatePasswordResetUseCase: InitiatePasswordResetUseCase,
     private confirmPasswordResetUseCase: ConfirmPasswordResetUseCase,
     private refreshTokenUseCase: RefreshTokenUseCase,
-    private googleOAuthCallbackUseCase: GoogleOAuthCallbackUseCase,
     private confirmEmailUseCase: ConfirmEmailUseCase,
     private resendVerificationCodeUseCase: ResendVerificationCodeUseCase,
-    private authRepository: IAuthRepository,
-    private oauthService: IOAuthService
+    private authRepository: IAuthRepository
   ) {}
 
   register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -88,48 +85,7 @@ export class AuthController {
     }
   };
 
-  googleAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const state = req.query.state as string;
-      const authUrl = this.oauthService.generateAuthUrl(state);
-      res.redirect(authUrl);
-    } catch (error) {
-      next(error);
-    }
-  };
 
-  googleCallback = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const { code, state, error } = req.query;
-
-      if (error) {
-        res.status(400).json({
-          success: false,
-          error: 'OAuth Error',
-          message: `Google OAuth error: ${error}`,
-        });
-        return;
-      }
-
-      if (!code) {
-        res.status(400).json({
-          success: false,
-          error: 'OAuth Error',
-          message: 'Authorization code is required',
-        });
-        return;
-      }
-
-      const result = await this.googleOAuthCallbackUseCase.execute({
-        code: code as string,
-        state: state as string,
-      });
-
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  };
 
   getCurrentUser = async (
     req: AuthenticatedRequest,

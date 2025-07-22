@@ -18,7 +18,6 @@ router.get('/', (_req: Request, res: Response) => {
     version: '1.0.0',
     features: [
       'User Authentication with AWS Cognito',
-      'Google OAuth Integration',
       'JWT Token Management',
       'Email Services with AWS SES',
       'Rate Limiting and Security',

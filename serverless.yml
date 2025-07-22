@@ -195,7 +195,7 @@ functions:
           authorizer:
             name: cognitoAuthorizer
             type: COGNITO_USER_POOLS
-            arn: arn:aws:cognito-idp:${self:provider.region}:${AWS::AccountId}:userpool/${env:COGNITO_USER_POOL_ID}
+            arn: arn:aws:cognito-idp:${self:provider.region}:542298339159:userpool/${env:COGNITO_USER_POOL_ID}
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
             headers:
@@ -212,7 +212,7 @@ functions:
           authorizer:
             name: cognitoAuthorizer
             type: COGNITO_USER_POOLS
-            arn: arn:aws:cognito-idp:${self:provider.region}:${AWS::AccountId}:userpool/${env:COGNITO_USER_POOL_ID}
+            arn: arn:aws:cognito-idp:${self:provider.region}:542298339159:userpool/${env:COGNITO_USER_POOL_ID}
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
             headers:
@@ -229,7 +229,7 @@ functions:
           authorizer:
             name: cognitoAuthorizer
             type: COGNITO_USER_POOLS
-            arn: arn:aws:cognito-idp:${self:provider.region}:${AWS::AccountId}:userpool/${env:COGNITO_USER_POOL_ID}
+            arn: arn:aws:cognito-idp:${self:provider.region}:542298339159:userpool/${env:COGNITO_USER_POOL_ID}
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
             headers:
@@ -253,7 +253,7 @@ functions:
           authorizer:
             name: cognitoAuthorizer
             type: COGNITO_USER_POOLS
-            arn: arn:aws:cognito-idp:${self:provider.region}:${AWS::AccountId}:userpool/${env:COGNITO_USER_POOL_ID}
+            arn: arn:aws:cognito-idp:${self:provider.region}:542298339159:userpool/${env:COGNITO_USER_POOL_ID}
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
             headers:

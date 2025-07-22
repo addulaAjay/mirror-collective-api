@@ -321,6 +321,18 @@ package:
 # CloudFormation resources
 resources:
   Resources:
+    # Cognito User Pool Authorizer
+    CognitoAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: cognitoAuthorizer
+        Type: COGNITO_USER_POOLS
+        IdentitySource: method.request.header.Authorization
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ProviderARNs:
+          - arn:aws:cognito-idp:${self:provider.region}:542298339159:userpool/${env:COGNITO_USER_POOL_ID}
+
     # Custom domain configuration (optional)
     # ApiGatewayDomainName:
     #   Type: AWS::ApiGateway::DomainName

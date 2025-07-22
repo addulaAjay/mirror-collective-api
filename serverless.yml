@@ -218,10 +218,6 @@ functions:
       - http:
           path: /api/auth/me
           method: GET
-          authorizer:
-            name: cognitoAuthorizer
-            type: COGNITO_USER_POOLS
-            arn: arn:aws:cognito-idp:${self:provider.region}:542298339159:userpool/${env:COGNITO_USER_POOL_ID}
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
             headers:
@@ -235,10 +231,6 @@ functions:
       - http:
           path: /api/auth/logout
           method: POST
-          authorizer:
-            name: cognitoAuthorizer
-            type: COGNITO_USER_POOLS
-            arn: arn:aws:cognito-idp:${self:provider.region}:542298339159:userpool/${env:COGNITO_USER_POOL_ID}
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
             headers:
@@ -252,10 +244,6 @@ functions:
       - http:
           path: /api/auth/account
           method: DELETE
-          authorizer:
-            name: cognitoAuthorizer
-            type: COGNITO_USER_POOLS
-            arn: arn:aws:cognito-idp:${self:provider.region}:542298339159:userpool/${env:COGNITO_USER_POOL_ID}
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
             headers:
@@ -276,10 +264,6 @@ functions:
       - http:
           path: /api/chat/mirror
           method: POST
-          authorizer:
-            name: cognitoAuthorizer
-            type: COGNITO_USER_POOLS
-            arn: arn:aws:cognito-idp:${self:provider.region}:542298339159:userpool/${env:COGNITO_USER_POOL_ID}
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
             headers:
@@ -321,18 +305,6 @@ package:
 # CloudFormation resources
 resources:
   Resources:
-    # Cognito User Pool Authorizer
-    CognitoAuthorizer:
-      Type: AWS::ApiGateway::Authorizer
-      Properties:
-        Name: cognitoAuthorizer
-        Type: COGNITO_USER_POOLS
-        IdentitySource: method.request.header.Authorization
-        RestApiId:
-          Ref: ApiGatewayRestApi
-        ProviderARNs:
-          - arn:aws:cognito-idp:${self:provider.region}:542298339159:userpool/${env:COGNITO_USER_POOL_ID}
-
     # Custom domain configuration (optional)
     # ApiGatewayDomainName:
     #   Type: AWS::ApiGateway::DomainName

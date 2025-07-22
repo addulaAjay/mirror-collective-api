@@ -3,22 +3,19 @@ import { AuthController } from '../../application/controllers/auth.controller';
 import {
   ConfirmEmailUseCase,
   ConfirmPasswordResetUseCase,
-  GoogleOAuthCallbackUseCase,
   InitiatePasswordResetUseCase,
   LoginUserUseCase,
   RefreshTokenUseCase,
   RegisterUserUseCase,
   ResendVerificationCodeUseCase,
 } from '../../domain/use-cases';
-import { IAuthRepository, IEmailService, IOAuthService } from '../../domain/repositories';
+import { IAuthRepository } from '../../domain/repositories';
 import { MirrorChatController } from '../../application/controllers/mirrorChat.controller';
 import { MirrorChatUseCase } from '../../domain/use-cases/mirror-chat.use-case';
 
 export function createAuthController(): AuthController {
   // Resolve dependencies from container
   const authRepository = container.resolve<IAuthRepository>(TOKENS.AUTH_REPOSITORY);
-  const emailService = container.resolve<IEmailService>(TOKENS.EMAIL_SERVICE);
-  const oauthService = container.resolve<IOAuthService>(TOKENS.OAUTH_SERVICE);
 
   // Create use cases
   const registerUserUseCase = new RegisterUserUseCase(authRepository);
@@ -26,11 +23,6 @@ export function createAuthController(): AuthController {
   const initiatePasswordResetUseCase = new InitiatePasswordResetUseCase(authRepository);
   const confirmPasswordResetUseCase = new ConfirmPasswordResetUseCase(authRepository);
   const refreshTokenUseCase = new RefreshTokenUseCase(authRepository);
-  const googleOAuthCallbackUseCase = new GoogleOAuthCallbackUseCase(
-    oauthService,
-    authRepository,
-    emailService
-  );
   const confirmEmailUseCase = new ConfirmEmailUseCase(authRepository);
   const resendVerificationCodeUseCase = new ResendVerificationCodeUseCase(authRepository);
 
@@ -41,11 +33,9 @@ export function createAuthController(): AuthController {
     initiatePasswordResetUseCase,
     confirmPasswordResetUseCase,
     refreshTokenUseCase,
-    googleOAuthCallbackUseCase,
     confirmEmailUseCase,
     resendVerificationCodeUseCase,
-    authRepository,
-    oauthService
+    authRepository
   );
 }
 

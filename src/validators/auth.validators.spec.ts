@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   changePasswordSchema,
   forgotPasswordSchema,
-  googleAuthCallbackSchema,
   refreshTokenSchema,
   resetPasswordSchema,
   userLoginSchema,
@@ -261,37 +260,6 @@ describe('Auth Validators', () => {
     });
   });
 
-  describe('googleAuthCallbackSchema', () => {
-    it('should validate valid callback data', () => {
-      const validData = {
-        code: 'auth-code-123',
-        state: 'state-parameter',
-      };
-
-      const { error } = googleAuthCallbackSchema.validate(validData);
-      expect(error).toBeUndefined();
-    });
-
-    it('should validate callback data without state', () => {
-      const validData = {
-        code: 'auth-code-123',
-      };
-
-      const { error } = googleAuthCallbackSchema.validate(validData);
-      expect(error).toBeUndefined();
-    });
-
-    it('should reject missing code', () => {
-      const invalidData = {
-        state: 'state-parameter',
-      };
-
-      const { error } = googleAuthCallbackSchema.validate(invalidData);
-      expect(error).toBeDefined();
-      expect(error?.details[0].path).toEqual(['code']);
-    });
-  });
-
   describe('refreshTokenSchema', () => {
     it('should validate valid refresh token', () => {
       const validData = {
@@ -403,7 +371,7 @@ describe('Auth Validators', () => {
 
       const result = validateRequest(nestedSchema, invalidData);
 
-      expect(result.validationErrors?.some(err => err.field === 'email')).toBe(true);
+      expect(result.validationErrors?.some((err) => err.field === 'email')).toBe(true);
     });
   });
 
@@ -411,7 +379,7 @@ describe('Auth Validators', () => {
     it('should reject password that is too long', () => {
       const invalidData = {
         email: 'test@example.com',
-        password: `${'A'.repeat(129)  }1!`,
+        password: `${'A'.repeat(129)}1!`,
         fullName: 'John Doe',
       };
 
@@ -432,7 +400,7 @@ describe('Auth Validators', () => {
     });
 
     it('should accept password with exactly 128 characters', () => {
-      const validPassword = `${'A'.repeat(125)  }1a!`;
+      const validPassword = `${'A'.repeat(125)}1a!`;
       const validData = {
         email: 'test@example.com',
         password: validPassword,
@@ -458,7 +426,7 @@ describe('Auth Validators', () => {
     });
 
     it('should reject email longer than 254 characters', () => {
-      const longEmail = `${'a'.repeat(251)  }@x.com`;
+      const longEmail = `${'a'.repeat(251)}@x.com`;
       const invalidData = {
         email: longEmail,
         password: 'TestPassword123!',

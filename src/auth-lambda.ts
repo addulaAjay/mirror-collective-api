@@ -57,9 +57,36 @@ if (config.nodeEnv !== 'test') {
   app.use(morgan('combined'));
 }
 
-// Body parsing middleware
-app.use(express.json({ limit: '1mb' })); // Smaller limit for auth
+// Debug middleware to log request body
+app.use((req, res, next) => {
+  console.log('DEBUG: Raw request body type:', typeof req.body);
+  console.log('DEBUG: Raw request body:', req.body);
+  console.log('DEBUG: Request headers:', req.headers);
+  console.log('DEBUG: Content-Type:', req.get('content-type'));
+  next();
+});
+
+// Body parsing middleware with error handling
+app.use(
+  express.json({
+    limit: '1mb',
+    type: 'application/json',
+  })
+);
 app.use(express.urlencoded({ extended: true }));
+
+// JSON parsing error handler
+app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (error instanceof SyntaxError && 'body' in error) {
+    console.error('JSON parsing error:', error.message);
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid JSON format',
+      message: 'The request body contains invalid JSON',
+    });
+  }
+  next(error);
+});
 
 // Health check for auth lambda
 app.get('/health', (_, res) => {
@@ -84,5 +111,7 @@ app.use((req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-// Export serverless handler
-export const handler = serverless(app);
+// Export serverless handler with proper API Gateway configuration
+export const handler = serverless(app, {
+  binary: false,
+});

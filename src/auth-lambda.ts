@@ -57,15 +57,6 @@ if (config.nodeEnv !== 'test') {
   app.use(morgan('combined'));
 }
 
-// Debug middleware to log request body
-app.use((req, res, next) => {
-  console.log('DEBUG: Raw request body type:', typeof req.body);
-  console.log('DEBUG: Raw request body:', req.body);
-  console.log('DEBUG: Request headers:', req.headers);
-  console.log('DEBUG: Content-Type:', req.get('content-type'));
-  next();
-});
-
 // Body parsing middleware with error handling
 app.use(
   express.json({
@@ -74,6 +65,15 @@ app.use(
   })
 );
 app.use(express.urlencoded({ extended: true }));
+
+// Debug middleware to log parsed request body
+app.use((req, res, next) => {
+  console.log('DEBUG: Parsed request body type:', typeof req.body);
+  console.log('DEBUG: Parsed request body:', req.body);
+  console.log('DEBUG: Request headers:', req.headers);
+  console.log('DEBUG: Content-Type:', req.get('content-type'));
+  next();
+});
 
 // JSON parsing error handler
 app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

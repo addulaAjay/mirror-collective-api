@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import Joi from 'joi';
 import { createAuthController } from '../../infrastructure/container/controller-factory';
-import { enhancedAuthenticateJWT } from '../../middleware/enhanced-auth.middleware';
+import { extractCognitoUser } from '../../middleware/cognito-context.middleware';
 import { AuthController } from '../controllers/auth.controller';
 import {
   emailVerificationSchema,
@@ -82,14 +82,15 @@ router.post('/resend-verification-code', validateResendVerificationCode, (req, r
 // router.get('/google', (req, res, next) => getAuthController().googleAuth(req, res, next));
 // router.get('/google/callback', (req, res, next) => getAuthController().googleCallback(req, res, next));
 
-// Protected routes (rate limiting temporarily disabled)
-router.get('/me', enhancedAuthenticateJWT, (req, res, next) =>
+// Protected routes - Authentication handled by API Gateway Cognito authorizer
+// Extract user context from API Gateway authorizer before processing
+router.get('/me', extractCognitoUser, (req, res, next) =>
   getAuthController().getCurrentUser(req, res, next)
 );
-router.post('/logout', enhancedAuthenticateJWT, (req, res, next) =>
+router.post('/logout', extractCognitoUser, (req, res, next) =>
   getAuthController().logout(req, res, next)
 );
-router.delete('/account', enhancedAuthenticateJWT, (req, res, next) =>
+router.delete('/account', extractCognitoUser, (req, res, next) =>
   getAuthController().deleteAccount(req, res, next)
 );
 

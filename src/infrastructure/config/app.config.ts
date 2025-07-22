@@ -12,13 +12,6 @@ export interface CognitoConfig {
   clientSecret: string;
 }
 
-export interface JwtConfig {
-  accessTokenSecret: string;
-  refreshTokenSecret: string;
-  accessTokenExpiresIn: string;
-  refreshTokenExpiresIn: string;
-}
-
 export interface GoogleOAuthConfig {
   clientId: string;
   clientSecret: string;
@@ -36,7 +29,6 @@ export interface AppConfig {
   apiBaseUrl: string;
   aws: AwsConfig;
   cognito: CognitoConfig;
-  jwt: JwtConfig;
   googleOAuth: GoogleOAuthConfig;
   email: EmailConfig;
   openAiApiKey: string;
@@ -65,12 +57,6 @@ const configSchema = Joi.object({
     clientId: Joi.string().required(),
     clientSecret: Joi.string().required(),
   }).required(),
-  jwt: Joi.object({
-    accessTokenSecret: Joi.string().min(32).required(),
-    refreshTokenSecret: Joi.string().min(32).required(),
-    accessTokenExpiresIn: Joi.string().default('15m'),
-    refreshTokenExpiresIn: Joi.string().default('7d'),
-  }).required(),
   googleOAuth: Joi.object({
     clientId: Joi.string().required(),
     clientSecret: Joi.string().required(),
@@ -89,22 +75,22 @@ export function loadConfig(): AppConfig {
     apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:3000',
     openAiApiKey: process.env.OPENAI_API_KEY || '',
     aws: {
-      region: process.env.AWS_REGION!,
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      region: process.env.AWS_REGION || '',
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
     },
     cognito: {
-      userPoolId: process.env.COGNITO_USER_POOL_ID!,
-      clientId: process.env.COGNITO_CLIENT_ID!,
-      clientSecret: process.env.COGNITO_CLIENT_SECRET!,
+      userPoolId: process.env.COGNITO_USER_POOL_ID || '',
+      clientId: process.env.COGNITO_CLIENT_ID || '',
+      clientSecret: process.env.COGNITO_CLIENT_SECRET || '',
     },
     googleOAuth: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      redirectUri: process.env.GOOGLE_REDIRECT_URI!,
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      redirectUri: process.env.GOOGLE_REDIRECT_URI || '',
     },
     email: {
-      fromEmail: process.env.SES_FROM_EMAIL!,
+      fromEmail: process.env.SES_FROM_EMAIL || '',
       sesRegion: process.env.SES_REGION,
     },
   };
@@ -126,10 +112,11 @@ export function validateConfiguration(): { isValid: boolean; errors: string[] } 
   try {
     loadConfig();
     return { isValid: true, errors: [] };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown configuration error';
     return {
       isValid: false,
-      errors: error.message.split('\n').filter((line: string) => line.trim()),
+      errors: errorMessage.split('\n').filter((line: string) => line.trim()),
     };
   }
 }

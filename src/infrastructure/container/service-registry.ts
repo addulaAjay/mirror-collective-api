@@ -4,7 +4,6 @@ import { SesEmailService } from '../repositories/ses-email.repository';
 import { GoogleOAuthRepository } from '../repositories/google-oauth.repository';
 import { MirrorChatUseCase } from '../../domain/use-cases/mirror-chat.use-case';
 import { OpenAIService } from '../../services/openai';
-import { CognitoJwtService } from '../../services/cognito/cognito-jwt.service';
 import { AuditLogService } from '../../services/security/audit-log.service';
 import { TokenBlacklistService } from '../../services/security/token-blacklist.service';
 import { CognitoTokenInvalidationService } from '../../services/security/cognito-token-invalidation.service';
@@ -15,7 +14,6 @@ export function registerServices(): void {
   container.registerSingleton(TOKENS.EMAIL_SERVICE, () => new SesEmailService());
   container.registerSingleton(TOKENS.OAUTH_SERVICE, () => new GoogleOAuthRepository());
   container.registerSingleton(TOKENS.CHAT_SERVICE, () => new OpenAIService());
-  container.registerSingleton(TOKENS.COGNITO_JWT_SERVICE, () => new CognitoJwtService());
   container.registerSingleton(TOKENS.AUDIT_LOG_SERVICE, () => new AuditLogService());
   container.registerSingleton(TOKENS.TOKEN_BLACKLIST_SERVICE, () => new TokenBlacklistService());
   container.registerSingleton(

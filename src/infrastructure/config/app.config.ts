@@ -12,12 +12,6 @@ export interface CognitoConfig {
   clientSecret: string;
 }
 
-export interface GoogleOAuthConfig {
-  clientId: string;
-  clientSecret: string;
-  redirectUri: string;
-}
-
 export interface EmailConfig {
   fromEmail: string;
   sesRegion?: string;
@@ -29,7 +23,6 @@ export interface AppConfig {
   apiBaseUrl: string;
   aws: AwsConfig;
   cognito: CognitoConfig;
-  googleOAuth: GoogleOAuthConfig;
   email: EmailConfig;
   openAiApiKey: string;
 }
@@ -57,13 +50,8 @@ const configSchema = Joi.object({
     clientId: Joi.string().required(),
     clientSecret: Joi.string().required(),
   }).required(),
-  googleOAuth: Joi.object({
-    clientId: Joi.string().required(),
-    clientSecret: Joi.string().required(),
-    redirectUri: Joi.string().uri().required(),
-  }).required(),
   email: Joi.object({
-    fromEmail: Joi.string().email().required(),
+    fromEmail: Joi.string().email().allow('').optional(),
     sesRegion: Joi.string().optional(),
   }).required(),
 });
@@ -83,11 +71,6 @@ export function loadConfig(): AppConfig {
       userPoolId: process.env.COGNITO_USER_POOL_ID || '',
       clientId: process.env.COGNITO_CLIENT_ID || '',
       clientSecret: process.env.COGNITO_CLIENT_SECRET || '',
-    },
-    googleOAuth: {
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-      redirectUri: process.env.GOOGLE_REDIRECT_URI || '',
     },
     email: {
       fromEmail: process.env.SES_FROM_EMAIL || '',

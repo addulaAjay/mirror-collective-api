@@ -16,15 +16,17 @@ provider:
     COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
     COGNITO_CLIENT_SECRET: ${env:COGNITO_CLIENT_SECRET}
     # SES Configuration
-    SES_FROM_EMAIL: ${env:SES_FROM_EMAIL}
+    SES_FROM_EMAIL: ${env:SES_FROM_EMAIL, 'mirrorcollective1@gmail.com'}
     SES_REGION: ${env:SES_REGION, 'us-east-1'}
     # CORS Configuration
     ALLOWED_ORIGINS: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
     # OpenAI Configuration (optional)
     OPENAI_API_KEY: ${env:OPENAI_API_KEY, ''}
+    # Security Configuration
+    BCRYPT_ROUNDS: ${env:BCRYPT_ROUNDS, '12'}
     # Rate limiting
-    RATE_LIMIT_WINDOW_MS: 900000
-    RATE_LIMIT_MAX_REQUESTS: 100
+    RATE_LIMIT_WINDOW_MS: ${env:RATE_LIMIT_WINDOW_MS, '900000'}
+    RATE_LIMIT_MAX_REQUESTS: ${env:RATE_LIMIT_MAX_REQUESTS, '100'}
 
   # IAM Role for Lambda functions
   iam:
@@ -37,6 +39,26 @@ provider:
             - logs:PutLogEvents
           Resource:
             - 'arn:aws:logs:${self:provider.region}:*:log-group:/aws/lambda/*:*:*'
+        # SES permissions for sending emails
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+          Resource:
+            - 'arn:aws:ses:${self:provider.region}:*:identity/*'
+        # Cognito permissions for user management
+        - Effect: Allow
+          Action:
+            - cognito-idp:AdminCreateUser
+            - cognito-idp:AdminDeleteUser
+            - cognito-idp:AdminGetUser
+            - cognito-idp:AdminInitiateAuth
+            - cognito-idp:AdminRespondToAuthChallenge
+            - cognito-idp:AdminSetUserPassword
+            - cognito-idp:AdminUpdateUserAttributes
+            - cognito-idp:ListUsers
+          Resource:
+            - 'arn:aws:cognito-idp:${self:provider.region}:*:userpool/*'
         # Add additional permissions as needed for your API
         # - Effect: Allow
         #   Action:

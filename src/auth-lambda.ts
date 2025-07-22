@@ -67,7 +67,7 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 
 // Debug middleware to log parsed request body
-app.use((req, res, next) => {
+app.use((req, _, next) => {
   console.log('DEBUG: Parsed request body type:', typeof req.body);
   console.log('DEBUG: Parsed request body:', req.body);
   console.log('DEBUG: Request headers:', req.headers);
@@ -76,7 +76,7 @@ app.use((req, res, next) => {
 });
 
 // JSON parsing error handler
-app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((error: Error, _: express.Request, res: express.Response, next: express.NextFunction) => {
   if (error instanceof SyntaxError && 'body' in error) {
     console.error('JSON parsing error:', error.message);
     res.status(400).json({
@@ -113,6 +113,23 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // Export serverless handler with proper API Gateway configuration
+import { Request } from 'express';
+
+interface ApiGatewayEvent {
+  body?: string | null;
+  [key: string]: unknown;
+}
+
 export const handler = serverless(app, {
   binary: false,
+  request: (req: Request, event: ApiGatewayEvent, _unused: unknown) => {
+    // Ensure proper JSON parsing for API Gateway
+    if (event.body && typeof event.body === 'string') {
+      try {
+        req.body = JSON.parse(event.body);
+      } catch (error) {
+        console.error('Failed to parse JSON body:', error);
+      }
+    }
+  },
 });

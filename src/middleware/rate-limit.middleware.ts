@@ -21,9 +21,12 @@ class InMemoryRateLimitStore {
 
   constructor() {
     // Clean up expired entries every 5 minutes
-    this.cleanupInterval = setInterval(() => {
-      this.cleanup();
-    }, 5 * 60 * 1000);
+    this.cleanupInterval = setInterval(
+      () => {
+        this.cleanup();
+      },
+      5 * 60 * 1000
+    );
   }
 
   private cleanup(): void {
@@ -207,7 +210,7 @@ export const createFailedAttemptTracker = (maxFailedAttempts: number, blockDurat
         const key = `failed_${ip}:${email}`;
 
         const entry = store.increment(key, blockDurationMs);
-        
+
         if (entry.count >= maxFailedAttempts) {
           store.block(key, blockDurationMs);
         }

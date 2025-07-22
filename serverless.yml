@@ -11,8 +11,22 @@ provider:
   environment:
     NODE_ENV: ${self:provider.stage}
     API_VERSION: v1
-    # Add other environment variables from your .env file
+    # AWS Configuration
+    AWS_REGION: ${self:provider.region}
+    # Cognito Configuration
+    COGNITO_USER_POOL_ID: ${env:COGNITO_USER_POOL_ID}
+    COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
+    COGNITO_CLIENT_SECRET: ${env:COGNITO_CLIENT_SECRET}
+    # SES Configuration
+    SES_FROM_EMAIL: ${env:SES_FROM_EMAIL}
+    SES_REGION: ${env:AWS_REGION, 'us-east-1'}
+    # CORS Configuration
     ALLOWED_ORIGINS: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+    # OpenAI Configuration (optional)
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY, ''}
+    # Rate limiting
+    RATE_LIMIT_WINDOW_MS: 900000
+    RATE_LIMIT_MAX_REQUESTS: 100
 
   # IAM Role for Lambda functions
   iam:
@@ -44,13 +58,14 @@ provider:
       - 'application/octet-stream'
 
 functions:
-  auth:
-    handler: dist/auth-lambda.handler
-    memorySize: 256 # Lower memory for auth operations
-    timeout: 15 # Shorter timeout for auth
+  # Main API handler (health check, root)
+  api:
+    handler: dist/lambda.handler
+    memorySize: 256
+    timeout: 15
     events:
       - http:
-          path: /api/auth/{proxy+}
+          path: /
           method: ANY
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
@@ -63,8 +78,158 @@ functions:
               - X-Amz-User-Agent
             allowCredentials: true
       - http:
-          path: /api/auth
+          path: /{proxy+}
           method: ANY
+          cors:
+            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+
+  auth:
+    handler: dist/auth-lambda.handler
+    memorySize: 256 # Lower memory for auth operations
+    timeout: 15 # Shorter timeout for auth
+    events:
+      # Public auth endpoints (no authorization required)
+      - http:
+          path: /api/auth/register
+          method: POST
+          cors:
+            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+      - http:
+          path: /api/auth/login
+          method: POST
+          cors:
+            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+      - http:
+          path: /api/auth/forgot-password
+          method: POST
+          cors:
+            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+      - http:
+          path: /api/auth/reset-password
+          method: POST
+          cors:
+            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+      - http:
+          path: /api/auth/refresh
+          method: POST
+          cors:
+            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+      - http:
+          path: /api/auth/confirm-email
+          method: POST
+          cors:
+            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+      - http:
+          path: /api/auth/resend-verification-code
+          method: POST
+          cors:
+            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+      # Protected auth endpoints (require Cognito authorization)
+      - http:
+          path: /api/auth/me
+          method: GET
+          authorizer:
+            name: cognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: arn:aws:cognito-idp:${self:provider.region}:#{AWS::AccountId}:userpool/${env:COGNITO_USER_POOL_ID}
+          cors:
+            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+      - http:
+          path: /api/auth/logout
+          method: POST
+          authorizer:
+            name: cognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: arn:aws:cognito-idp:${self:provider.region}:#{AWS::AccountId}:userpool/${env:COGNITO_USER_POOL_ID}
+          cors:
+            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+      - http:
+          path: /api/auth/account
+          method: DELETE
+          authorizer:
+            name: cognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: arn:aws:cognito-idp:${self:provider.region}:#{AWS::AccountId}:userpool/${env:COGNITO_USER_POOL_ID}
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
             headers:
@@ -81,22 +246,14 @@ functions:
     memorySize: 1024 # Higher memory for AI processing
     timeout: 60 # Longer timeout for AI responses
     events:
+      # All chat endpoints require Cognito authorization
       - http:
-          path: /api/chat/{proxy+}
-          method: ANY
-          cors:
-            origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-            allowCredentials: true
-      - http:
-          path: /api/chat
-          method: ANY
+          path: /api/chat/mirror
+          method: POST
+          authorizer:
+            name: cognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: arn:aws:cognito-idp:${self:provider.region}:#{AWS::AccountId}:userpool/${env:COGNITO_USER_POOL_ID}
           cors:
             origin: ${env:ALLOWED_ORIGINS, 'https://your-frontend-domain.com'}
             headers:
@@ -127,6 +284,9 @@ package:
     - '!*.md'
     - '!*.json'
     - '!*.yml'
+    - '!coverage/**'
+    - '!docs/**'
+    - '!*.log'
     - 'dist/**'
     - 'package.json'
     - 'node_modules/**'

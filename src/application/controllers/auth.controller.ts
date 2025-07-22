@@ -1,4 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
+import { UserProfile } from '../../types/auth.types';
+
+// Extend Express Request interface to include user
+interface AuthenticatedRequest extends Request {
+  user?: UserProfile;
+}
+
 import {
   ConfirmEmailUseCase,
   ConfirmPasswordResetUseCase,
@@ -124,7 +131,11 @@ export class AuthController {
     }
   };
 
-  getCurrentUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getCurrentUser = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       if (!req.user) {
         res.status(401).json({
@@ -144,7 +155,7 @@ export class AuthController {
     }
   };
 
-  logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  logout = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       if (!req.user) {
         res.status(401).json({
@@ -169,7 +180,11 @@ export class AuthController {
     }
   };
 
-  deleteAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  deleteAccount = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       if (!req.user) {
         res.status(401).json({

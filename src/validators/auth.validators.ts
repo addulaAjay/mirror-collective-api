@@ -94,9 +94,29 @@ export const validateRequest = (
   schema: Joi.ObjectSchema,
   data: unknown
 ): { error?: string; validationErrors?: Array<{ field: string; message: string }> } => {
+  // Debug logging
+  console.log('🔍 Validation input data:', JSON.stringify(data));
+  console.log('🔍 Validation input type:', typeof data);
+  console.log('🔍 Validation input constructor:', data?.constructor?.name);
+
+  // Handle edge case where data might be null, undefined, or not an object
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    console.log('❌ Invalid request body format - not an object');
+    return {
+      error: 'Validation failed',
+      validationErrors: [
+        {
+          field: 'body',
+          message: 'Request body must be a valid JSON object',
+        },
+      ],
+    };
+  }
+
   const { error } = schema.validate(data, { abortEarly: false });
 
   if (error) {
+    console.log('❌ Validation error:', error.details);
     const validationErrors = error.details.map((detail) => ({
       field: detail.path.join('.'),
       message: detail.message,

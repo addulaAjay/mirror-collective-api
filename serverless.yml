@@ -57,6 +57,12 @@ provider:
             - cognito-idp:AdminSetUserPassword
             - cognito-idp:AdminUpdateUserAttributes
             - cognito-idp:ListUsers
+            - cognito-idp:SignUp
+            - cognito-idp:ConfirmSignUp
+            - cognito-idp:ForgotPassword
+            - cognito-idp:ConfirmForgotPassword
+            - cognito-idp:ResendConfirmationCode
+            - cognito-idp:InitiateAuth
           Resource:
             - 'arn:aws:cognito-idp:${self:provider.region}:*:userpool/*'
         # Add additional permissions as needed for your API

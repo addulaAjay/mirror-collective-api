@@ -32,23 +32,44 @@ export class CognitoService {
   private clientSecret: string;
 
   constructor() {
-    this.client = new CognitoIdentityProviderClient({
+    // In Lambda environment, use IAM role credentials automatically
+    // In local development, use explicit credentials from environment variables
+    const clientConfig: {
+      region: string;
+      credentials?: { accessKeyId: string; secretAccessKey: string };
+    } = {
       region: process.env.AWS_REGION || 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-      },
-    });
+    };
 
-    this.userPoolId = process.env.COGNITO_USER_POOL_ID!;
-    this.clientId = process.env.COGNITO_CLIENT_ID!;
-    this.clientSecret = process.env.COGNITO_CLIENT_SECRET!;
+    // Only add explicit credentials if running locally (not in Lambda)
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+      const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+      const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 
-    if (!this.userPoolId || !this.clientId || !this.clientSecret) {
+      if (accessKeyId && secretAccessKey) {
+        clientConfig.credentials = {
+          accessKeyId,
+          secretAccessKey,
+        };
+      }
+    }
+    // In Lambda/production, credentials are automatically provided by the IAM role
+
+    this.client = new CognitoIdentityProviderClient(clientConfig);
+
+    const userPoolId = process.env.COGNITO_USER_POOL_ID;
+    const clientId = process.env.COGNITO_CLIENT_ID;
+    const clientSecret = process.env.COGNITO_CLIENT_SECRET;
+
+    if (!userPoolId || !clientId || !clientSecret) {
       throw new Error(
         'Missing required Cognito configuration. Please check your environment variables.'
       );
     }
+
+    this.userPoolId = userPoolId;
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
   }
 
   /**

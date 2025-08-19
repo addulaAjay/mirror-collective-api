@@ -6,6 +6,8 @@ import { OpenAIService } from '../../services/openai';
 import { AuditLogService } from '../../services/security/audit-log.service';
 import { TokenBlacklistService } from '../../services/security/token-blacklist.service';
 import { CognitoTokenInvalidationService } from '../../services/security/cognito-token-invalidation.service';
+import { QuizAnswersUseCase } from '../../domain/use-cases/quiz-answers.use-case';
+import { QuizAnswersService } from '../../services/quiz';
 
 export function registerServices(): void {
   // Register repository implementations as singletons
@@ -21,6 +23,10 @@ export function registerServices(): void {
   container.registerSingleton(
     TOKENS.MIRROR_CHAT_USE_CASE,
     () => new MirrorChatUseCase(container.resolve(TOKENS.CHAT_SERVICE))
+  );
+  container.registerSingleton(
+    TOKENS.QUIZ_ANSWERS_USE_CASE,
+    () => new QuizAnswersUseCase(new QuizAnswersService())
   );
 }
 

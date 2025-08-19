@@ -12,6 +12,8 @@ import {
 import { IAuthRepository } from '../../domain/repositories';
 import { MirrorChatController } from '../../application/controllers/mirrorChat.controller';
 import { MirrorChatUseCase } from '../../domain/use-cases/mirror-chat.use-case';
+import { QuizAnswersController } from '../../application/controllers/quizAnswers.controller';
+import { QuizAnswersUseCase } from '../../domain/use-cases/quiz-answers.use-case';
 
 export function createAuthController(): AuthController {
   // Resolve dependencies from container
@@ -42,4 +44,9 @@ export function createAuthController(): AuthController {
 export function createMirrorChatController(): MirrorChatController {
   const mirrorChatUseCase = container.resolve<MirrorChatUseCase>(TOKENS.MIRROR_CHAT_USE_CASE);
   return new MirrorChatController(mirrorChatUseCase);
+}
+
+export function createQuizAnswersController(): QuizAnswersController {
+  const quizAnswersUseCase = container.resolve<QuizAnswersUseCase>(TOKENS.QUIZ_ANSWERS_USE_CASE);
+  return new QuizAnswersController(quizAnswersUseCase);
 }

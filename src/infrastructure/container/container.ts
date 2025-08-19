@@ -51,6 +51,7 @@ export const TOKENS = {
   OAUTH_SERVICE: Symbol('OAuthService'),
   CHAT_SERVICE: Symbol('ChatService'),
   MIRROR_CHAT_USE_CASE: Symbol('MirrorChatUseCase'),
+  QUIZ_ANSWERS_USE_CASE: Symbol('QuizAnswersUseCase'),
   AUDIT_LOG_SERVICE: Symbol('AuditLogService'),
   TOKEN_BLACKLIST_SERVICE: Symbol('TokenBlacklistService'),
   TOKEN_INVALIDATION_SERVICE: Symbol('TokenInvalidationService'),

@@ -24,6 +24,7 @@ import { authRoutes } from './application/routes/auth.routes';
 // Error handling
 import { errorHandler } from './middleware/error.middleware';
 import { mirrorChatRoutes } from './application/routes/mirrorChat.routes';
+import { quizAnswersRoutes } from './application/routes/quizAnswers.routes';
 
 export function createApp(): express.Application {
   // Load and validate configuration
@@ -93,6 +94,9 @@ export function createApp(): express.Application {
 
   // Mirror chat routes
   app.use('/api/chat', mirrorChatRoutes);
+
+  // Quiz answers routes
+  app.use('/api/quiz', quizAnswersRoutes);
 
   // Default route
   app.get('/', (_, res) => {
